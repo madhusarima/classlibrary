@@ -11,4 +11,7 @@ export default defineConfig({
       "@db": path.resolve(__dirname, "./db"),
     },
   },
+  build: {
+    outDir: "dist/public",
+  },
 });
