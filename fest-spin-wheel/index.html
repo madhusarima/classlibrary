@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fest Spin Wheel</title>
+<style>
+  :root {
+    --ink: #2b2d42; --soft: #5c6178; --bg1: #fff7e0; --bg2: #ffe3ec; --card: #ffffff;
+    --accent: #ff6b6b; --accent2: #4dabf7; --good: #2f9e44; --radius: 22px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font-family: "Nirmala UI", "Noto Sans Telugu", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+    color: var(--ink);
+    background: radial-gradient(circle at 15% 10%, var(--bg1), transparent 55%),
+                radial-gradient(circle at 90% 90%, var(--bg2), transparent 55%), #fffdf6;
+    min-height: 100vh; overflow-x: hidden;
+  }
+  header { display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; gap: 12px; }
+  header h1 { margin: 0; font-size: clamp(20px, 3vw, 34px); letter-spacing: .01em; }
+  header small { display: block; color: var(--soft); font-size: clamp(12px, 1.4vw, 16px); font-weight: 500; }
+  .tools { display: flex; gap: 8px; }
+  .tools button { background: #fff; border: 2px solid #e9e4d6; border-radius: 14px; padding: 8px 12px; font-size: 18px; cursor: pointer; }
+  .tools button:hover { border-color: var(--accent2); }
+
+  main { display: grid; grid-template-columns: minmax(300px, 1.15fr) minmax(300px, 1fr); gap: 24px; align-items: center; padding: 0 24px 24px; max-width: 1280px; margin: 0 auto; }
+  @media (max-width: 860px) { main { grid-template-columns: 1fr; } }
+
+  .left { text-align: center; }
+  .name-banner { min-height: 1.3em; font-size: clamp(22px, 3.6vw, 44px); font-weight: 800; color: #fff; background: linear-gradient(135deg,#7048e8,#4dabf7); display: inline-block; padding: 4px 26px; border-radius: 999px; margin: 0 auto 14px; box-shadow: 0 6px 16px rgba(112,72,232,.3); max-width: 96%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .wheel-wrap { position: relative; width: min(92vw, calc(100vh - 190px), 640px); min-width: 280px; margin: 10px auto 0; aspect-ratio: 1; }
+  #wheel { width: 100%; height: 100%; display: block; filter: drop-shadow(0 12px 22px rgba(60,40,90,.25)); }
+  .pointer { position: absolute; left: 50%; top: -2.2%; transform: translateX(-50%); width: 9%; z-index: 3; filter: drop-shadow(0 3px 3px rgba(0,0,0,.3)); }
+  .hub { position: absolute; left: 50%; top: 50%; width: 17%; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; border: 6px solid #fff; background: var(--accent); color: #fff; font-weight: 800; font-size: clamp(12px, 2.4vw, 22px); cursor: pointer; z-index: 2; box-shadow: 0 6px 14px rgba(0,0,0,.25); }
+  .hub:disabled { background: #b8bdd0; cursor: default; }
+
+  .panel { background: var(--card); border-radius: var(--radius); padding: clamp(18px, 3vw, 36px); box-shadow: 0 10px 40px rgba(80,60,120,.12); text-align: center; }
+  .panel h2 { margin: 0 0 8px; font-size: clamp(24px, 3.4vw, 40px); }
+  .panel p { margin: 0 0 18px; color: var(--soft); font-size: clamp(15px, 1.8vw, 20px); }
+  .name-in { width: 100%; font: inherit; font-size: clamp(22px, 3vw, 32px); text-align: center; padding: 14px 16px; border-radius: 16px; border: 3px solid #e9e4d6; outline: none; color: var(--ink); }
+  .name-in:focus { border-color: var(--accent2); }
+  .big { display: inline-block; margin-top: 16px; width: 100%; font: inherit; font-weight: 800; font-size: clamp(20px, 2.8vw, 30px); padding: 14px 18px; border: 0; border-radius: 18px; color: #fff; background: linear-gradient(135deg, #ff6b6b, #ffa94d); cursor: pointer; box-shadow: 0 8px 18px rgba(255,107,107,.35); }
+  .big:hover { transform: translateY(-1px); }
+  .big:disabled { background: #c9cddc; box-shadow: none; cursor: default; transform: none; }
+  .big.alt { background: linear-gradient(135deg, #4dabf7, #748ffc); box-shadow: 0 8px 18px rgba(77,171,247,.35); }
+  .ghost { background: transparent; color: var(--soft); box-shadow: none; border: 2px solid #e1ddd0; font-size: 18px; }
+  .panel p.hello { font-size: clamp(26px, 4vw, 48px); font-weight: 800; margin: 0 0 6px; }
+  .hello span { color: var(--accent); word-break: break-word; }
+
+  .prize-emoji { font-size: clamp(60px, 9vw, 110px); line-height: 1.1; animation: pop .6s cubic-bezier(.2,1.5,.4,1); }
+  @keyframes pop { from { transform: scale(.2) rotate(-20deg); opacity: 0; } to { transform: none; opacity: 1; } }
+  .chip { display: inline-block; padding: 4px 14px; border-radius: 999px; font-weight: 700; font-size: 15px; color: #fff; margin-bottom: 8px; }
+  .where { background: #f4f1e6; border-radius: 14px; padding: 10px 14px; margin: 6px 0 0; font-size: clamp(15px, 1.8vw, 19px); }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .hidden { display: none !important; }
+
+  /* admin */
+  .overlay { position: fixed; inset: 0; background: rgba(30,25,50,.55); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 20; }
+  .modal { background: #fff; border-radius: 22px; width: min(1000px, 100%); max-height: 94vh; overflow: auto; padding: 22px; }
+  .modal h3 { margin: 0 0 10px; }
+  .modal label { font-size: 14px; color: var(--soft); display: block; margin: 8px 0 3px; font-weight: 600; }
+  .modal input, .modal select { font: inherit; font-size: 15px; padding: 7px 9px; border: 2px solid #e5e1d4; border-radius: 10px; width: 100%; }
+  .modal .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+  th { text-align: left; font-size: 12px; color: var(--soft); padding: 4px; }
+  td { padding: 3px; vertical-align: middle; }
+  td input, td select { min-width: 0; }
+  .btn { font: inherit; font-weight: 700; font-size: 15px; padding: 9px 14px; border-radius: 12px; border: 2px solid #e5e1d4; background: #fff; cursor: pointer; }
+  .btn.primary { background: var(--good); border-color: var(--good); color: #fff; }
+  .btn.danger { color: #c92a2a; }
+  .hint { font-size: 13px; color: var(--soft); margin-top: 8px; }
+  .stats { display: flex; gap: 10px; flex-wrap: wrap; margin: 8px 0; }
+  .stat { background: #f4f1e6; border-radius: 12px; padding: 8px 12px; font-weight: 700; }
+  #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 15; }
+
+  /* printable token */
+  #printArea { display: none; }
+  .token { width: 72mm; margin: 0 auto; border: 2px dashed #000; padding: 4mm; text-align: center; font-family: "Nirmala UI", "Noto Sans Telugu", "Segoe UI", Arial, sans-serif; color: #000; }
+  .token .t-top { font-weight: 800; font-size: 14pt; }
+  .token .t-sub { font-size: 9pt; margin-bottom: 2mm; }
+  .token .t-name { font-size: 12pt; margin: 2mm 0; }
+  .token .t-emoji { font-size: 34pt; line-height: 1.1; }
+  .token .t-prize { font-size: 16pt; font-weight: 800; margin: 1mm 0; }
+  .token .t-type { display: inline-block; border: 2px solid #000; border-radius: 3mm; padding: 0 3mm; font-weight: 800; font-size: 10pt; margin: 1mm 0; }
+  .token .t-where { font-size: 11pt; margin-top: 2mm; }
+  .token .t-no { font-size: 10pt; margin-top: 3mm; border-top: 1px dashed #000; padding-top: 2mm; }
+  @media print {
+    @page { margin: 4mm; }
+    body > *:not(#printArea) { display: none !important; }
+    #printArea { display: block; }
+    body { background: #fff; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1 id="title">Fest Spin Wheel</h1>
+    <small id="subtitle"></small>
+  </div>
+  <div class="tools">
+    <button id="btnLang" title="Language / భాష">తె / EN</button>
+    <button id="btnSound" title="Sound">🔊</button>
+    <button id="btnAdmin" title="Organiser settings">⚙️</button>
+  </div>
+</header>
+
+<main>
+  <div class="left">
+  <div class="name-banner hidden" id="nameBanner"></div>
+  <div class="wheel-wrap">
+    <svg class="pointer" viewBox="0 0 40 50"><path d="M20 50 L2 6 Q20 -4 38 6 Z" fill="#2b2d42" stroke="#fff" stroke-width="3"/></svg>
+    <canvas id="wheel" width="900" height="900"></canvas>
+    <button class="hub" id="hub" disabled>SPIN</button>
+  </div>
+  </div>
+
+  <section class="panel" id="panel">
+    <!-- step 1 -->
+    <div id="stepName">
+      <h2 id="tWelcome">Welcome!</h2>
+      <p id="tAsk">Type your name and spin the wheel</p>
+      <input class="name-in" id="nameIn" maxlength="24" autocomplete="off" spellcheck="false" placeholder="Your name">
+      <button class="big" id="btnStart">Let's go! 🎈</button>
+    </div>
+    <!-- step 2 -->
+    <div id="stepSpin" class="hidden">
+      <p class="hello" id="hello"></p>
+      <p id="tReady">Everyone gets a token. Tap SPIN and enjoy!</p>
+      <button class="big" id="btnSpin">🎡 SPIN!</button>
+      <button class="big ghost" id="btnBack">← Change name</button>
+    </div>
+    <!-- step 3 -->
+    <div id="stepResult" class="hidden">
+      <div class="prize-emoji" id="rEmoji"></div>
+      <div class="chip" id="rChip"></div>
+      <h2 id="rTitle"></h2>
+      <p id="rMsg"></p>
+      <div class="where" id="rWhere"></div>
+      <div class="row2">
+        <button class="big alt" id="btnPrint">🖨️ Print token</button>
+        <button class="big" id="btnNext">Next child ➜</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<canvas id="confetti"></canvas>
+<div id="printArea"></div>
+
+<!-- Admin -->
+<div class="overlay hidden" id="adminOverlay">
+  <div class="modal" id="adminModal"></div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- text (English / Telugu) ---------- */
+  var I18N = {
+    en: {
+      welcome: 'Welcome! 🎉', ask: 'Type your name and spin the wheel', ph: 'Your name', go: "Let's go! 🎈",
+      ready: 'Everyone gets a token. Tap SPIN and enjoy!', spin: '🎡 SPIN!', back: '← Change name',
+      hello: function (n) { return 'Hello, <span>' + n + '</span>! 🌟'; },
+      cheer: function (n) { return 'Go ' + n + ', go! 🎊'; },
+      spinning: 'Spinning…', print: '🖨️ Print token', next: 'Next child ➜',
+      congrats: function (n) { return 'Congratulations, ' + n + '! 🎉'; },
+      redeem: 'Show this token at: ', noname: 'Friend',
+      types: { money: 'MONEY TOKEN', game: 'GAME TOKEN', entry: 'ENTRY TOKEN', gift: 'GIFT TOKEN', star: 'PARTICIPATION TOKEN' },
+      starMsg: 'Everyone is a star! Enjoy the fest! ⭐',
+      out: 'All prizes are over. Please ask the organiser.',
+      tokenNo: 'Token No.', valid: 'Valid today only', for: 'For'
+    },
+    te: {
+      welcome: 'స్వాగతం! 🎉', ask: 'మీ పేరు రాసి చక్రం తిప్పండి', ph: 'మీ పేరు', go: 'పదండి! 🎈',
+      ready: 'అందరికీ ఒక టోకెన్ ఉంది. SPIN నొక్కండి!', spin: '🎡 తిప్పండి!', back: '← పేరు మార్చండి',
+      hello: function (n) { return 'హలో, <span>' + n + '</span>! 🌟'; },
+      cheer: function (n) { return n + ', ముందుకు! 🎊'; },
+      spinning: 'తిరుగుతోంది…', print: '🖨️ టోకెన్ ప్రింట్', next: 'తర్వాతి చిన్నారి ➜',
+      congrats: function (n) { return 'అభినందనలు, ' + n + '! 🎉'; },
+      redeem: 'ఈ టోకెన్ చూపండి: ', noname: 'మిత్రమా',
+      types: { money: 'మనీ టోకెన్', game: 'గేమ్ టోకెన్', entry: 'ఎంట్రీ టోకెన్', gift: 'బహుమతి టోకెన్', star: 'పాల్గొన్న టోకెన్' },
+      starMsg: 'అందరూ స్టార్స్! ఫెస్ట్ ఆనందించండి! ⭐',
+      out: 'బహుమతులు అయిపోయాయి. నిర్వాహకులను అడగండి.',
+      tokenNo: 'టోకెన్ నం.', valid: 'ఈ రోజు మాత్రమే చెల్లుతుంది', for: 'పేరు'
+    }
+  };
+  var TYPE_COLORS = { money: '#2f9e44', game: '#7048e8', entry: '#1c7ed6', gift: '#e8590c', star: '#d6336c' };
+  var TYPE_LIST = ['money', 'game', 'entry', 'gift', 'star'];
+  var PALETTE = ['#ff8787', '#ffc078', '#ffe066', '#8ce99a', '#63e6be', '#74c0fc', '#91a7ff', '#e599f7', '#faa2c1', '#c0eb75'];
+
+  /* ---------- default settings (organiser can edit with the gear button) ---------- */
+  var DEFAULTS = {
+    title: 'School Fest Spin Wheel',
+    subtitle: 'Play, enjoy, learn — everyone wins a token!',
+    lang: 'en', sound: true, autoPrint: false, pin: '1234',
+    prizes: [
+      { emoji: '💰', label: '₹20 Money Token', type: 'money', where: 'Snack / Shop stalls', weight: 6, left: 30 },
+      { emoji: '🎮', label: 'Free Game Play', type: 'game', where: 'Game Zone', weight: 14, left: '' },
+      { emoji: '🎨', label: 'Art Corner Entry', type: 'entry', where: 'Art Room', weight: 12, left: '' },
+      { emoji: '⭐', label: 'Participation Star', type: 'star', where: 'Any activity corner', weight: 14, left: '' },
+      { emoji: '🎁', label: 'Surprise Gift', type: 'gift', where: 'Gift Desk', weight: 8, left: 40 },
+      { emoji: '🔬', label: 'Science Lab Entry', type: 'entry', where: 'Science Lab', weight: 12, left: '' },
+      { emoji: '💰', label: '₹10 Money Token', type: 'money', where: 'Snack / Shop stalls', weight: 12, left: 60 },
+      { emoji: '🎪', label: 'Magic Show Entry', type: 'entry', where: 'Magic Show Hall', weight: 10, left: '' },
+      { emoji: '🍬', label: 'Sweet Treat', type: 'gift', where: 'Gift Desk', weight: 10, left: 80 },
+      { emoji: '🤗', label: 'Smile Token', type: 'star', where: 'Any activity corner', weight: 14, left: '' }
+    ]
+  };
+
+  /* ---------- storage (never throws) ---------- */
+  function load(key, fallback) { try { var v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch (e) { return fallback; } }
+  function save(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) { /* ignore */ } }
+  var cfg = load('fest_cfg', null) || JSON.parse(JSON.stringify(DEFAULTS));
+  var log = load('fest_log', []);      // token no, time, prize, type — NO names
+  var counter = load('fest_counter', 0);
+
+  var $ = function (id) { return document.getElementById(id); };
+  function t(k) { return I18N[cfg.lang][k]; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  /* ---------- sound (WebAudio, no files) ---------- */
+  var actx = null;
+  function audio() {
+    if (!cfg.sound) return null;
+    try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === 'suspended') actx.resume(); } catch (e) { actx = null; }
+    return actx;
+  }
+  function beep(freq, dur, type, vol, when) {
+    var a = audio(); if (!a) return;
+    var o = a.createOscillator(), g = a.createGain(), t0 = a.currentTime + (when || 0);
+    o.type = type || 'sine'; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol || .12, t0); g.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
+    o.connect(g); g.connect(a.destination); o.start(t0); o.stop(t0 + dur + .02);
+  }
+  function tick() { beep(1300, .04, 'square', .05); }
+  function cheerSound() { [523, 659, 784, 1047, 1319].forEach(function (f, i) { beep(f, .28, 'triangle', .14, i * .1); }); }
+  function startSound() { [440, 554, 659].forEach(function (f, i) { beep(f, .18, 'triangle', .1, i * .07); }); }
+
+  /* ---------- confetti ---------- */
+  var cv = $('confetti'), cx = cv.getContext('2d'), bits = [], confettiOn = false;
+  function sizeConfetti() { cv.width = innerWidth; cv.height = innerHeight; }
+  addEventListener('resize', sizeConfetti); sizeConfetti();
+  function confetti(n) {
+    for (var i = 0; i < n; i++) {
+      bits.push({ x: innerWidth / 2 + (Math.random() - .5) * innerWidth * .5, y: innerHeight * .35,
+        vx: (Math.random() - .5) * 14, vy: -Math.random() * 14 - 4, r: Math.random() * 6 + 4,
+        c: PALETTE[(Math.random() * PALETTE.length) | 0], rot: Math.random() * 6, vr: (Math.random() - .5) * .4, life: 0 });
+    }
+    if (!confettiOn) { confettiOn = true; requestAnimationFrame(stepConfetti); }
+  }
+  function stepConfetti() {
+    cx.clearRect(0, 0, cv.width, cv.height);
+    bits = bits.filter(function (b) { return b.y < cv.height + 20 && b.life < 260; });
+    bits.forEach(function (b) {
+      b.life++; b.vy += .35; b.vx *= .99; b.x += b.vx; b.y += b.vy; b.rot += b.vr;
+      cx.save(); cx.translate(b.x, b.y); cx.rotate(b.rot); cx.fillStyle = b.c; cx.fillRect(-b.r, -b.r / 2, b.r * 2, b.r); cx.restore();
+    });
+    if (bits.length) requestAnimationFrame(stepConfetti); else { confettiOn = false; cx.clearRect(0, 0, cv.width, cv.height); }
+  }
+
+  /* ---------- wheel drawing ---------- */
+  var canvas = $('wheel'), ctx = canvas.getContext('2d');
+  var rot = 0, spinning = false, idleTimer = 0, glowIdx = -1;
+  var TAU = Math.PI * 2;
+
+  function drawWheel() {
+    var P = cfg.prizes, n = P.length, W = canvas.width, c = W / 2, R = c - 26, arc = TAU / n;
+    ctx.clearRect(0, 0, W, W);
+    // rim
+    ctx.beginPath(); ctx.arc(c, c, c - 6, 0, TAU); ctx.fillStyle = '#2b2d42'; ctx.fill();
+    for (var b = 0; b < 24; b++) {
+      var ba = b / 24 * TAU;
+      ctx.beginPath(); ctx.arc(c + Math.cos(ba) * (c - 16), c + Math.sin(ba) * (c - 16), 5, 0, TAU);
+      ctx.fillStyle = (b % 2 ? '#ffd43b' : '#fff'); ctx.fill();
+    }
+    ctx.save(); ctx.translate(c, c); ctx.rotate(rot);
+    for (var i = 0; i < n; i++) {
+      var a0 = i * arc, a1 = a0 + arc;
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, R, a0, a1); ctx.closePath();
+      ctx.fillStyle = PALETTE[i % PALETTE.length]; ctx.fill();
+      ctx.lineWidth = 3; ctx.strokeStyle = '#fff'; ctx.stroke();
+      if (i === glowIdx) { ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.fill(); }
+      // text along the radius
+      ctx.save(); ctx.rotate(a0 + arc / 2);
+      ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#2b2d42';
+      var emojiSize = Math.min(R * .17, 78);
+      ctx.font = emojiSize + 'px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif';
+      ctx.fillText(P[i].emoji || '', R - 14, 0);
+      var label = P[i].label || '', fs = Math.min(R * .075, 34), maxW = R * .52;
+      ctx.font = '700 ' + fs + 'px "Nirmala UI","Noto Sans Telugu","Segoe UI",sans-serif';
+      while (ctx.measureText(label).width > maxW && fs > 14) { fs -= 1; ctx.font = '700 ' + fs + 'px "Nirmala UI","Noto Sans Telugu","Segoe UI",sans-serif'; }
+      while (ctx.measureText(label).width > maxW && label.length > 4) label = label.slice(0, -2);
+      ctx.fillText(label, R - emojiSize - 28, 0);
+      ctx.restore();
+    }
+    ctx.restore();
+  }
+
+  /* ---------- prize choice: weighted random, skips prizes that ran out ---------- */
+  function hasStock(p) { return p.left === '' || p.left === null || Number(p.left) > 0; }
+  function pickPrize() {
+    var pool = [], total = 0;
+    cfg.prizes.forEach(function (p, i) { if (hasStock(p) && Number(p.weight) > 0) { pool.push(i); total += Number(p.weight); } });
+    if (!pool.length) { // nothing weighted left: fall back to any participation prize
+      cfg.prizes.forEach(function (p, i) { if (p.type === 'star') pool.push(i); });
+      if (!pool.length) return -1;
+      return pool[(Math.random() * pool.length) | 0];
+    }
+    var r = Math.random() * total;
+    for (var k = 0; k < pool.length; k++) { r -= Number(cfg.prizes[pool[k]].weight); if (r <= 0) return pool[k]; }
+    return pool[pool.length - 1];
+  }
+  function indexAtPointer() {
+    var arc = TAU / cfg.prizes.length, a = ((-Math.PI / 2 - rot) % TAU + TAU) % TAU;
+    return Math.floor(a / arc) % cfg.prizes.length;
+  }
+
+  function spinTo(idx, done) {
+    var n = cfg.prizes.length, arc = TAU / n;
+    var jitter = (Math.random() - .5) * arc * .7;
+    var base = -Math.PI / 2 - (idx + .5) * arc - jitter;
+    var target = base;
+    while (target < rot + TAU * 5) target += TAU;
+    var from = rot, dur = 5600, t0 = performance.now(), last = indexAtPointer();
+    spinning = true;
+    (function frame(now) {
+      var p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 4);
+      rot = from + (target - from) * e;
+      var cur = indexAtPointer(); if (cur !== last) { tick(); last = cur; }
+      drawWheel();
+      if (p < 1) requestAnimationFrame(frame); else { spinning = false; done(); }
+    })(t0);
+  }
+
+  function idle() {
+    clearInterval(idleTimer);
+    idleTimer = setInterval(function () { if (!spinning) { rot += .0035; drawWheel(); } }, 30);
+  }
+
+  /* ---------- flow ---------- */
+  var name = '', current = null;
+  function show(step) {
+    ['stepName', 'stepSpin', 'stepResult'].forEach(function (s) { $(s).classList.toggle('hidden', s !== step); });
+    $('hub').disabled = (step !== 'stepSpin');
+    var nb = $('nameBanner'); nb.classList.toggle('hidden', step === 'stepName' || !name); nb.textContent = '🌟 ' + name + ' 🌟';
+  }
+  function applyText() {
+    var T = I18N[cfg.lang];
+    $('title').textContent = cfg.title; $('subtitle').textContent = cfg.subtitle;
+    document.title = cfg.title;
+    $('tWelcome').textContent = T.welcome; $('tAsk').textContent = T.ask; $('nameIn').placeholder = T.ph;
+    $('btnStart').textContent = T.go; $('tReady').textContent = T.ready; $('btnSpin').textContent = T.spin;
+    $('btnBack').textContent = T.back; $('btnPrint').textContent = T.print; $('btnNext').textContent = T.next;
+    $('btnSound').textContent = cfg.sound ? '🔊' : '🔇';
+    if (!$('stepSpin').classList.contains('hidden')) $('hello').innerHTML = T.hello(esc(name));
+  }
+  function start() {
+    var v = $('nameIn').value.trim();
+    name = v || t('noname'); $('nameBanner').textContent = '🌟 ' + name + ' 🌟';
+    audio(); startSound();
+    $('hello').innerHTML = t('hello')(esc(name));
+    show('stepSpin'); confetti(40);
+    setTimeout(function () { $('btnSpin').focus(); }, 50);
+  }
+  function doSpin() {
+    if (spinning) return;
+    audio();
+    var idx = pickPrize();
+    if (idx < 0) { alert(t('out')); return; }
+    $('hub').disabled = true; $('btnSpin').disabled = true; $('btnBack').classList.add('hidden');
+    $('btnSpin').textContent = t('spinning'); $('hello').innerHTML = t('cheer')(esc(name));
+    clearInterval(idleTimer); confetti(30);
+    spinTo(idx, function () { finish(idx); });
+  }
+  function finish(idx) {
+    var p = cfg.prizes[idx];
+    if (p.left !== '' && p.left !== null) p.left = Math.max(0, Number(p.left) - 1);
+    counter++; save('fest_counter', counter);
+    log.push({ no: counter, time: new Date().toISOString(), prize: p.label, type: p.type });
+    save('fest_log', log); save('fest_cfg', cfg);
+    current = { no: counter, prize: p, name: name, time: new Date() };
+    glowIdx = idx; drawWheel();
+    cheerSound(); confetti(160); setTimeout(function () { confetti(90); }, 500);
+    var T = I18N[cfg.lang];
+    $('rEmoji').textContent = p.emoji;
+    $('rChip').textContent = T.types[p.type] || ''; $('rChip').style.background = TYPE_COLORS[p.type] || '#555';
+    $('rTitle').textContent = p.label;
+    $('rMsg').textContent = p.type === 'star' ? T.starMsg : T.congrats(name);
+    $('rWhere').textContent = T.redeem + p.where;
+    $('btnSpin').disabled = false; $('btnBack').classList.remove('hidden');
+    show('stepResult'); $('hub').disabled = true;
+    if (cfg.autoPrint) setTimeout(printToken, 900);
+    else setTimeout(function () { $('btnPrint').focus(); }, 50);
+  }
+  function nextChild() {
+    name = ''; current = null; glowIdx = -1; $('nameIn').value = ''; $('btnSpin').textContent = t('spin');
+    drawWheel(); show('stepName'); idle(); $('nameIn').focus();
+  }
+  function printToken() {
+    if (!current) return;
+    var T = I18N[cfg.lang], p = current.prize, d = current.time;
+    var no = ('0000' + current.no).slice(-4);
+    $('printArea').innerHTML =
+      '<div class="token">' +
+      '<div class="t-top">' + esc(cfg.title) + '</div><div class="t-sub">' + esc(cfg.subtitle) + '</div>' +
+      '<div class="t-name">' + T.for + ': <b>' + esc(current.name) + '</b></div>' +
+      '<div class="t-emoji">' + p.emoji + '</div>' +
+      '<div class="t-prize">' + esc(p.label) + '</div>' +
+      '<div class="t-type">' + (T.types[p.type] || '') + '</div>' +
+      '<div class="t-where">' + T.redeem + '<b>' + esc(p.where) + '</b></div>' +
+      '<div class="t-no">' + T.tokenNo + ' ' + no + ' · ' + d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + '<br>' + T.valid + '</div>' +
+      '</div>';
+    window.print();
+  }
+
+  /* ---------- organiser settings ---------- */
+  function adminLogin() {
+    $('adminOverlay').classList.remove('hidden');
+    $('adminModal').innerHTML =
+      '<h3>⚙️ Organiser settings</h3><label>Enter PIN</label>' +
+      '<input id="pinIn" type="password" inputmode="numeric" style="max-width:220px" autocomplete="off">' +
+      '<div style="margin-top:12px"><button class="btn primary" id="pinOk">Open</button> <button class="btn" id="pinCancel">Cancel</button></div>' +
+      '<p class="hint">Default PIN is 1234. Change it inside settings.</p>';
+    $('pinIn').focus();
+    $('pinCancel').onclick = closeAdmin;
+    var go = function () { if ($('pinIn').value === String(cfg.pin)) adminPanel(); else { $('pinIn').value = ''; $('pinIn').placeholder = 'Wrong PIN'; } };
+    $('pinOk').onclick = go; $('pinIn').onkeydown = function (e) { if (e.key === 'Enter') go(); };
+  }
+  function closeAdmin() { $('adminOverlay').classList.add('hidden'); $('adminModal').innerHTML = ''; }
+
+  function adminPanel() {
+    var counts = {}; log.forEach(function (l) { counts[l.type] = (counts[l.type] || 0) + 1; });
+    var rows = cfg.prizes.map(function (p, i) { return rowHtml(p, i); }).join('');
+    $('adminModal').innerHTML =
+      '<h3>⚙️ Organiser settings</h3>' +
+      '<div class="stats"><div class="stat">Tokens given: ' + log.length + '</div>' +
+      TYPE_LIST.map(function (k) { return '<div class="stat" style="border-left:6px solid ' + TYPE_COLORS[k] + '">' + k + ': ' + (counts[k] || 0) + '</div>'; }).join('') + '</div>' +
+      '<div class="grid2">' +
+      '<div><label>Fest title</label><input id="aTitle" value="' + esc(cfg.title) + '"></div>' +
+      '<div><label>Sub-title (printed on token)</label><input id="aSub" value="' + esc(cfg.subtitle) + '"></div>' +
+      '<div><label>PIN for this screen</label><input id="aPin" value="' + esc(cfg.pin) + '"></div>' +
+      '<div><label>Print automatically after each spin?</label><select id="aAuto"><option value="0">No — child/volunteer taps Print</option><option value="1"' + (cfg.autoPrint ? ' selected' : '') + '>Yes</option></select></div>' +
+      '</div>' +
+      '<table><thead><tr><th>Emoji</th><th>Name on wheel</th><th>Kind</th><th>Where to use it</th><th>Chance</th><th>Qty left</th><th></th></tr></thead><tbody id="aRows">' + rows + '</tbody></table>' +
+      '<p class="hint">Chance = how likely (bigger number = more often). Qty left: leave blank for unlimited; when it reaches 0 that prize is skipped automatically. Wheel shows 2–16 slices. Keep at least one “star” (participation) slice so no one is left without a token.</p>' +
+      '<div style="margin-top:10px"><button class="btn" id="aAdd">+ Add slice</button> ' +
+      '<button class="btn" id="aCsv">⬇ Download token log (no names)</button> ' +
+      '<button class="btn" id="aDefaults">Restore sample prizes</button> ' +
+      '<button class="btn danger" id="aClear">Clear log</button></div>' +
+      '<div style="margin-top:16px"><button class="btn primary" id="aSave">Save & close</button> <button class="btn" id="aCancel">Cancel</button></div>' +
+      '<p class="hint">Privacy: names are shown on screen and printed on the token only. They are never saved. The log keeps only token number, time and prize.</p>';
+    wireRows();
+    $('aAdd').onclick = function () { addRow({ emoji: '🎈', label: 'New prize', type: 'star', where: '', weight: 5, left: '' }); };
+    $('aCancel').onclick = closeAdmin;
+    $('aSave').onclick = saveAdmin;
+    $('aCsv').onclick = downloadCsv;
+    $('aDefaults').onclick = function () { if (confirm('Replace the prize list with the sample prizes?')) { cfg.prizes = JSON.parse(JSON.stringify(DEFAULTS.prizes)); adminPanel(); } };
+    $('aClear').onclick = function () { if (confirm('Delete the token log and restart token numbers from 1?')) { log = []; counter = 0; save('fest_log', log); save('fest_counter', 0); adminPanel(); } };
+  }
+  function rowHtml(p, i) {
+    return '<tr data-i="' + i + '">' +
+      '<td><input class="r-emoji" style="width:62px" value="' + esc(p.emoji) + '"></td>' +
+      '<td><input class="r-label" value="' + esc(p.label) + '"></td>' +
+      '<td><select class="r-type">' + TYPE_LIST.map(function (k) { return '<option value="' + k + '"' + (k === p.type ? ' selected' : '') + '>' + k + '</option>'; }).join('') + '</select></td>' +
+      '<td><input class="r-where" value="' + esc(p.where) + '"></td>' +
+      '<td><input class="r-weight" type="number" min="0" style="width:72px" value="' + esc(p.weight) + '"></td>' +
+      '<td><input class="r-left" type="number" min="0" style="width:78px" value="' + esc(p.left === null ? '' : p.left) + '"></td>' +
+      '<td><button class="btn danger r-del" title="Remove">✕</button></td></tr>';
+  }
+  function wireRows() {
+    Array.prototype.forEach.call(document.querySelectorAll('.r-del'), function (b) { b.onclick = function () { b.closest('tr').remove(); }; });
+  }
+  function addRow(p) {
+    var tb = $('aRows'); if (tb.rows.length >= 16) { alert('Maximum 16 slices.'); return; }
+    var tmp = document.createElement('tbody'); tmp.innerHTML = rowHtml(p, tb.rows.length);
+    tb.appendChild(tmp.firstChild); wireRows();
+  }
+  function saveAdmin() {
+    var rows = Array.prototype.slice.call(document.querySelectorAll('#aRows tr')), prizes = [];
+    rows.forEach(function (tr) {
+      var label = tr.querySelector('.r-label').value.trim(); if (!label) return;
+      prizes.push({ emoji: tr.querySelector('.r-emoji').value.trim() || '🎁', label: label, type: tr.querySelector('.r-type').value,
+        where: tr.querySelector('.r-where').value.trim() || '—', weight: Math.max(0, Number(tr.querySelector('.r-weight').value) || 0),
+        left: tr.querySelector('.r-left').value === '' ? '' : Math.max(0, Number(tr.querySelector('.r-left').value)) });
+    });
+    if (prizes.length < 2 || prizes.length > 16) { alert('Please keep between 2 and 16 slices.'); return; }
+    if (!prizes.some(function (p) { return p.type === 'star'; })) {
+      if (!confirm('There is no “star” (participation) slice, so if every prize runs out the wheel cannot give a token. Save anyway?')) return;
+    }
+    cfg.prizes = prizes; cfg.title = $('aTitle').value.trim() || DEFAULTS.title; cfg.subtitle = $('aSub').value.trim();
+    cfg.pin = $('aPin').value.trim() || '1234'; cfg.autoPrint = $('aAuto').value === '1';
+    save('fest_cfg', cfg); closeAdmin(); applyText(); drawWheel();
+  }
+  function downloadCsv() {
+    var csv = 'token_no,time,prize,kind\n' + log.map(function (l) { return [l.no, l.time, '"' + String(l.prize).replace(/"/g, '""') + '"', l.type].join(','); }).join('\n');
+    var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv' }));
+    a.download = 'fest-token-log.csv'; document.body.appendChild(a); a.click(); a.remove();
+  }
+
+  /* ---------- wire up ---------- */
+  $('btnStart').onclick = start;
+  $('nameIn').onkeydown = function (e) { if (e.key === 'Enter') start(); };
+  $('btnSpin').onclick = doSpin; $('hub').onclick = doSpin;
+  $('btnBack').onclick = function () { show('stepName'); $('nameIn').focus(); };
+  $('btnNext').onclick = nextChild; $('btnPrint').onclick = printToken;
+  $('btnLang').onclick = function () { cfg.lang = cfg.lang === 'en' ? 'te' : 'en'; save('fest_cfg', cfg); document.documentElement.lang = cfg.lang; applyText(); };
+  $('btnSound').onclick = function () { cfg.sound = !cfg.sound; save('fest_cfg', cfg); applyText(); if (cfg.sound) startSound(); };
+  $('btnAdmin').onclick = adminLogin;
+  $('adminOverlay').addEventListener('mousedown', function (e) { if (e.target === this) closeAdmin(); });
+
+  applyText(); drawWheel(); show('stepName'); idle(); $('nameIn').focus();
+  window.__fest = { cfg: cfg, pickPrize: pickPrize };
+})();
+</script>
+</body>
+</html>
