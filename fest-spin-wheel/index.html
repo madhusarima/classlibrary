@@ -77,6 +77,9 @@
   .btn { font: inherit; font-weight: 700; font-size: 15px; padding: 9px 14px; border-radius: 12px; border: 2px solid #e5e1d4; background: #fff; cursor: pointer; }
   .btn.primary { background: var(--good); border-color: var(--good); color: #fff; }
   .btn.danger { color: #c92a2a; }
+  .foot { position: sticky; bottom: -22px; background: #fff; padding: 12px 0 14px; margin-top: 14px; border-top: 2px solid #eee; display: flex; gap: 10px; align-items: center; z-index: 5; }
+  .foot .btn.primary { font-size: 18px; padding: 12px 26px; }
+  #toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); background: #2f9e44; color: #fff; font-weight: 800; padding: 12px 26px; border-radius: 999px; z-index: 40; box-shadow: 0 8px 20px rgba(0,0,0,.25); font-size: 18px; }
   .hint { font-size: 13px; color: var(--soft); margin-top: 8px; }
   .stats { display: flex; gap: 10px; flex-wrap: wrap; margin: 8px 0; }
   .stat { background: #f4f1e6; border-radius: 12px; padding: 8px 12px; font-weight: 700; }
@@ -226,9 +229,9 @@
       { emoji: '🎁', label: 'Surprise Gift', details: 'Collect one surprise gift from the Gift Desk.', type: 'gift', where: 'Gift Desk', weight: 8, left: 40 },
       { emoji: '🔬', label: 'Science Lab Entry', details: 'One free entry to the Science Lab experiments.', type: 'entry', where: 'Science Lab', weight: 12, left: '' },
       { emoji: '💰', label: '₹10 Money Token', details: 'Worth ₹10 — spend it at any food or shop stall.', type: 'money', where: 'Snack / Shop stalls', weight: 12, left: 60 },
-      { emoji: '🎪', label: 'Magic Show Entry', details: 'One free seat at the Magic Show.', type: 'entry', where: 'Magic Show Hall', weight: 10, left: '' },
-      { emoji: '🍬', label: 'Sweet Treat', details: 'Collect one sweet treat from the Gift Desk.', type: 'gift', where: 'Gift Desk', weight: 10, left: 80 },
-      { emoji: '🤗', label: 'Smile Token', details: 'Thank you for playing! Enjoy the fest with a smile.', type: 'star', where: 'Any activity corner', weight: 14, left: '' }
+      { emoji: '📒', label: 'Artist Pad', details: 'Collect one artist pad from the Stationery corner.', type: 'gift', where: 'Stationery corner', weight: 3, left: '' },
+      { emoji: '🏷️', label: 'Stickers', details: 'Collect a sticker sheet from the Gift Desk.', type: 'gift', where: 'Gift Desk', weight: 30, left: 50 },
+      { emoji: '📄', label: '20 colour papers', details: 'Collect a pack of 20 colour papers.', type: 'gift', where: 'Stationery corner', weight: 5, left: '' }
     ]
   };
 
@@ -239,7 +242,24 @@
   if (!cfg.school) cfg.school = DEFAULTS.school;
   if (!cfg.event) cfg.event = DEFAULTS.event;
   if (!cfg.title || cfg.title === 'School Fest Spin Wheel') cfg.title = DEFAULTS.title;
-  cfg.prizes.forEach(function (p) { if (p.details === undefined) p.details = ''; });
+  var EMOJI_RULES = [
+    [/paper|sheet/i, '📄'], [/\bpad\b|notebook|\bbook\b/i, '📒'], [/sticker/i, '🏷️'], [/crayon|colou?r pencil|sketch/i, '🖍️'],
+    [/pencil/i, '✏️'], [/\bpen\b/i, '🖊️'], [/eraser|rubber/i, '🧽'], [/ruler|scale|geometry/i, '📏'], [/bookmark/i, '🔖'],
+    [/money|rupee|₹|cash|coin/i, '💰'], [/magic/i, '🎪'], [/face paint/i, '🎭'], [/art|paint|draw/i, '🎨'], [/science|lab|experiment/i, '🔬'],
+    [/game|play/i, '🎮'], [/puzzle/i, '🧩'], [/chess|board game/i, '♟️'], [/ball|sports?|cricket/i, '⚽'], [/toy|teddy/i, '🧸'],
+    [/balloon/i, '🎈'], [/cake/i, '🍰'], [/ice ?cream/i, '🍦'], [/juice|drink/i, '🧃'], [/sweet|candy|chocolate|toffee/i, '🍬'],
+    [/snack|chips|popcorn|food/i, '🍿'], [/\bbag\b/i, '🎒'], [/medal/i, '🏅'], [/trophy|champion/i, '🏆'], [/photo|selfie|camera/i, '📸'],
+    [/dance/i, '💃'], [/music|song|sing/i, '🎵'], [/santa|christmas/i, '🎅'], [/tree/i, '🎄'], [/ride|swing|merry/i, '🎠'],
+    [/ticket|entry|enter/i, '🎟️'], [/smile/i, '🤗'], [/star|participation/i, '⭐'], [/gift|surprise|present/i, '🎁']
+  ];
+  function suggestEmoji(label) { for (var i = 0; i < EMOJI_RULES.length; i++) if (EMOJI_RULES[i][0].test(label || '')) return EMOJI_RULES[i][1]; return ''; }
+  var QUICK_EMOJI = ['💰','🎮','🎨','🔬','🎁','⭐','🎟️','🎪','📒','📄','🏷️','🖍️','✏️','🖊️','📏','🧸','🎈','🍬','🍰','🍦','🧃','🍿','🏆','🏅','⚽','🧩','🎵','💃','📸','🎅','🎄','🤗'];
+  var STALE_EMOJI = ['🎪', '🍬', '🤗'];   // old sample emojis, fixed if the name no longer matches them
+  cfg.prizes.forEach(function (p) {
+    if (p.details === undefined) p.details = '';
+    var sg = suggestEmoji(p.label);
+    if (!p.emoji || (STALE_EMOJI.indexOf(p.emoji) >= 0 && sg && sg !== p.emoji && !/magic|sweet|smile|candy/i.test(p.label))) p.emoji = sg || p.emoji || '🎁';
+  });
   var log = load('fest_log', []);      // token no, time, prize, type — NO names
   var counter = load('fest_counter', 0);
 
@@ -492,14 +512,16 @@
       '<div><label>PIN for this screen</label><input id="aPin" value="' + esc(cfg.pin) + '"></div>' +
       '<div><label>Print automatically after each spin?</label><select id="aAuto"><option value="0">No — child/volunteer taps Print</option><option value="1"' + (cfg.autoPrint ? ' selected' : '') + '>Yes</option></select></div>' +
       '</div>' +
+      '<div class="hint" style="margin:12px 0 4px">Tap a row\'s emoji box, then tap an emoji here. Typing a prize name also picks a matching emoji for you.</div>' +
+      '<div id="quickEmoji" style="display:flex;flex-wrap:wrap;gap:4px">' + QUICK_EMOJI.map(function (e) { return '<button type="button" class="btn qe" style="padding:4px 8px;font-size:22px">' + e + '</button>'; }).join('') + '</div>' +
       '<table><thead><tr><th>Emoji</th><th>Name on wheel</th><th>Kind</th><th>Where to use it</th><th>Details printed on token</th><th>Chance</th><th>Qty left</th><th></th></tr></thead><tbody id="aRows">' + rows + '</tbody></table>' +
       '<p class="hint">Details = the sentence printed under the prize on the token. Chance = how likely (bigger number = more often). Qty left: leave blank for unlimited; when it reaches 0 that prize is skipped automatically. Wheel shows 2–16 slices. Keep at least one “star” (participation) slice so no one is left without a token.</p>' +
       '<div style="margin-top:10px"><button class="btn" id="aAdd">+ Add slice</button> ' +
       '<button class="btn" id="aCsv">⬇ Download token log (no names)</button> ' +
       '<button class="btn" id="aDefaults">Restore sample prizes</button> ' +
       '<button class="btn danger" id="aClear">Clear log</button></div>' +
-      '<div style="margin-top:16px"><button class="btn primary" id="aSave">Save & close</button> <button class="btn" id="aCancel">Cancel</button></div>' +
-      '<p class="hint">Privacy: names are shown on screen and printed on the token only. They are never saved. The log keeps only token number, time and prize.</p>';
+      '<p class="hint">Privacy: names are shown on screen and printed on the token only. They are never saved. The log keeps only token number, time and prize.</p>' +
+      '<div class="foot"><button class="btn primary" id="aSave">✔ Save &amp; close</button> <button class="btn" id="aCancel">Cancel (discard changes)</button></div>';
     wireRows();
     $('aAdd').onclick = function () { addRow({ emoji: '🎈', label: 'New prize', type: 'star', where: '', details: '', weight: 5, left: '' }); };
     $('aCancel').onclick = closeAdmin;
@@ -519,8 +541,24 @@
       '<td><input class="r-left" type="number" min="0" style="width:78px" value="' + esc(p.left === null ? '' : p.left) + '"></td>' +
       '<td><button class="btn danger r-del" title="Remove">✕</button></td></tr>';
   }
+  var lastEmojiIn = null;
   function wireRows() {
     Array.prototype.forEach.call(document.querySelectorAll('.r-del'), function (b) { b.onclick = function () { b.closest('tr').remove(); }; });
+    Array.prototype.forEach.call(document.querySelectorAll('.r-emoji'), function (e) {
+      e.onfocus = function () { lastEmojiIn = e; };
+      e.oninput = function () { e.dataset.custom = '1'; };
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('.r-label'), function (l) {
+      l.onchange = function () {
+        var e = l.closest('tr').querySelector('.r-emoji'), sg = suggestEmoji(l.value);
+        var defaults = DEFAULTS.prizes.map(function (d) { return d.emoji; });
+        if (sg && (!e.value.trim() || e.dataset.custom !== '1' || defaults.indexOf(e.value.trim()) >= 0)) { e.value = sg; e.dataset.custom = ''; }
+      };
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('.qe'), function (b) {
+      b.onmousedown = function (ev) { ev.preventDefault(); };
+      b.onclick = function () { if (lastEmojiIn && document.body.contains(lastEmojiIn)) { lastEmojiIn.value = b.textContent; lastEmojiIn.dataset.custom = '1'; } };
+    });
   }
   function addRow(p) {
     var tb = $('aRows'); if (tb.rows.length >= 16) { alert('Maximum 16 slices.'); return; }
@@ -541,7 +579,11 @@
     }
     cfg.prizes = prizes; cfg.title = $('aTitle').value.trim() || DEFAULTS.title; cfg.school = $('aSchool').value.trim() || DEFAULTS.school; cfg.event = $('aEvent').value.trim() || DEFAULTS.event;
     cfg.pin = $('aPin').value.trim() || '1234'; cfg.autoPrint = $('aAuto').value === '1';
-    save('fest_cfg', cfg); closeAdmin(); applyText(); drawWheel();
+    save('fest_cfg', cfg); closeAdmin(); applyText(); drawWheel(); toast('✔ Saved — ' + cfg.prizes.length + ' slices on the wheel');
+  }
+  function toast(msg) {
+    var t = document.createElement('div'); t.id = 'toast'; t.textContent = msg; document.body.appendChild(t);
+    setTimeout(function () { t.remove(); }, 2600);
   }
   function downloadCsv() {
     var csv = 'token_no,time,prize,kind\n' + log.map(function (l) { return [l.no, l.time, '"' + String(l.prize).replace(/"/g, '""') + '"', l.type].join(','); }).join('\n');
@@ -558,7 +600,7 @@
   $('btnLang').onclick = function () { cfg.lang = cfg.lang === 'en' ? 'te' : 'en'; save('fest_cfg', cfg); document.documentElement.lang = cfg.lang; applyText(); };
   $('btnSound').onclick = function () { cfg.sound = !cfg.sound; save('fest_cfg', cfg); applyText(); if (cfg.sound) startSound(); };
   $('btnAdmin').onclick = adminLogin;
-  $('adminOverlay').addEventListener('mousedown', function (e) { if (e.target === this) closeAdmin(); });
+  $('adminOverlay').addEventListener('mousedown', function (e) { if (e.target === this && !$('aSave')) closeAdmin(); });
 
   applyText(); drawWheel(); show('stepName'); idle(); $('nameIn').focus();
   window.__fest = { cfg: cfg, pickPrize: pickPrize, rot: function () { return rot; }, at: indexAtPointer };
