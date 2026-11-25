@@ -19,8 +19,8 @@
     min-height: 100vh; overflow-x: hidden;
   }
   header { display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; gap: 12px; }
-  header h1 { margin: 0; font-size: clamp(20px, 3vw, 34px); letter-spacing: .01em; }
-  header small { display: block; color: var(--soft); font-size: clamp(12px, 1.4vw, 16px); font-weight: 500; }
+  header h1 { margin: 0; font-size: clamp(28px, 4.4vw, 56px); letter-spacing: .01em; line-height: 1.05; background: linear-gradient(135deg,#ff6b6b,#7048e8); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  header small { display: block; color: var(--ink); font-size: clamp(16px, 2.3vw, 28px); font-weight: 800; margin-top: 2px; }
   .tools { display: flex; gap: 8px; }
   .tools button { background: #fff; border: 2px solid #e9e4d6; border-radius: 14px; padding: 8px 12px; font-size: 18px; cursor: pointer; }
   .tools button:hover { border-color: var(--accent2); }
@@ -30,7 +30,7 @@
 
   .left { text-align: center; }
   .name-banner { min-height: 1.3em; font-size: clamp(22px, 3.6vw, 44px); font-weight: 800; color: #fff; background: linear-gradient(135deg,#7048e8,#4dabf7); display: inline-block; padding: 4px 26px; border-radius: 999px; margin: 0 auto 14px; box-shadow: 0 6px 16px rgba(112,72,232,.3); max-width: 96%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .wheel-wrap { position: relative; width: min(92vw, calc(100vh - 190px), 640px); min-width: 280px; margin: 10px auto 0; aspect-ratio: 1; }
+  .wheel-wrap { position: relative; width: min(92vw, calc(100vh - 230px), 640px); min-width: 280px; margin: 10px auto 0; aspect-ratio: 1; }
   #wheel { width: 100%; height: 100%; display: block; filter: drop-shadow(0 12px 22px rgba(60,40,90,.25)); }
   .pointer { position: absolute; left: 50%; top: -2.2%; transform: translateX(-50%); width: 9%; z-index: 3; filter: drop-shadow(0 3px 3px rgba(0,0,0,.3)); }
   .hub { position: absolute; left: 50%; top: 50%; width: 17%; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; border: 6px solid #fff; background: var(--accent); color: #fff; font-weight: 800; font-size: clamp(12px, 2.4vw, 22px); cursor: pointer; z-index: 2; box-shadow: 0 6px 14px rgba(0,0,0,.25); }
@@ -248,7 +248,12 @@
     g.gain.setValueAtTime(vol || .12, t0); g.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
     o.connect(g); g.connect(a.destination); o.start(t0); o.stop(t0 + dur + .02);
   }
-  function tick() { beep(1300, .04, 'square', .05); }
+  var ptr = document.querySelector('.pointer'), ptrT = 0;
+  function tick() {
+    beep(1300, .04, 'square', .05);
+    ptr.style.transform = 'translateX(-50%) rotate(-16deg)'; ptr.style.transformOrigin = '50% 20%';
+    clearTimeout(ptrT); ptrT = setTimeout(function () { ptr.style.transform = 'translateX(-50%)'; }, 70);
+  }
   function cheerSound() { [523, 659, 784, 1047, 1319].forEach(function (f, i) { beep(f, .28, 'triangle', .14, i * .1); }); }
   function startSound() { [440, 554, 659].forEach(function (f, i) { beep(f, .18, 'triangle', .1, i * .07); }); }
 
@@ -333,18 +338,30 @@
 
   function spinTo(idx, done) {
     var n = cfg.prizes.length, arc = TAU / n;
-    var jitter = (Math.random() - .5) * arc * .7;
-    var base = -Math.PI / 2 - (idx + .5) * arc - jitter;
-    var target = base;
+    var jitter = (Math.random() - .5) * arc * .6;           // stays inside the chosen slice
+    var target = -Math.PI / 2 - (idx + .5) * arc - jitter;
     while (target < rot + TAU * 5) target += TAU;
-    var from = rot, dur = 5600, t0 = performance.now(), last = indexAtPointer();
+    var over = arc * (0.55 + Math.random() * .25);            // overshoot past the final spot
+    var peak = target + over;
+    var from = rot, t0 = performance.now(), last = indexAtPointer();
+    // phases: fast spin & slow-down -> pause at the edge -> roll BACK -> tiny forward nudge -> settle
+    var D1 = 5200, HOLD = 380, D2 = 900, D3 = 380, D4 = 420, nudge = arc * 0.07;
+    var easeOut = function (x) { return 1 - Math.pow(1 - x, 4); };
+    var easeIO = function (x) { return x < .5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2; };
     spinning = true;
     (function frame(now) {
-      var p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 4);
-      rot = from + (target - from) * e;
+      var el = now - t0, r;
+      if (el < D1) r = from + (peak - from) * easeOut(el / D1);
+      else if (el < D1 + HOLD) r = peak;
+      else if (el < D1 + HOLD + D2) r = peak - over * easeIO((el - D1 - HOLD) / D2);
+      else if (el < D1 + HOLD + D2 + D3) r = target + nudge * Math.sin(Math.PI * (el - D1 - HOLD - D2) / D3);
+      else if (el < D1 + HOLD + D2 + D3 + D4) r = target - nudge * .4 * Math.sin(Math.PI * (el - D1 - HOLD - D2 - D3) / D4);
+      else r = target;
+      rot = r;
       var cur = indexAtPointer(); if (cur !== last) { tick(); last = cur; }
       drawWheel();
-      if (p < 1) requestAnimationFrame(frame); else { spinning = false; done(); }
+      if (el < D1 + HOLD + D2 + D3 + D4) requestAnimationFrame(frame);
+      else { rot = target; drawWheel(); spinning = false; done(); }
     })(t0);
   }
 
@@ -362,7 +379,7 @@
   }
   function applyText() {
     var T = I18N[cfg.lang];
-    $('title').textContent = cfg.title; $('subtitle').textContent = cfg.school + ' · ' + cfg.event;
+    $('title').textContent = cfg.title; $('subtitle').textContent = cfg.school + ' ' + cfg.event;
     document.title = cfg.title + ' · ' + cfg.school + ' ' + cfg.event;
     $('tWelcome').textContent = T.welcome; $('tAsk').textContent = T.ask; $('nameIn').placeholder = T.ph;
     $('btnStart').textContent = T.go; $('tReady').textContent = T.ready; $('btnSpin').textContent = T.spin;
@@ -530,7 +547,7 @@
   $('adminOverlay').addEventListener('mousedown', function (e) { if (e.target === this) closeAdmin(); });
 
   applyText(); drawWheel(); show('stepName'); idle(); $('nameIn').focus();
-  window.__fest = { cfg: cfg, pickPrize: pickPrize };
+  window.__fest = { cfg: cfg, pickPrize: pickPrize, rot: function () { return rot; }, at: indexAtPointer };
 })();
 </script>
 </body>
