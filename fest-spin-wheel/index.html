@@ -18,7 +18,9 @@
                 radial-gradient(circle at 90% 90%, var(--bg2), transparent 55%), #fffdf6;
     min-height: 100vh; overflow-x: hidden;
   }
-  header { display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; gap: 12px; }
+  header { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 14px 24px 6px; gap: 6px; }
+  header .tools { position: absolute; right: 24px; top: 14px; }
+  @media (max-width: 700px) { header .tools { position: static; } }
   header h1 { margin: 0; font-size: clamp(28px, 4.4vw, 56px); letter-spacing: .01em; line-height: 1.05; background: linear-gradient(135deg,#ff6b6b,#7048e8); -webkit-background-clip: text; background-clip: text; color: transparent; }
   header small { display: block; color: var(--ink); font-size: clamp(16px, 2.3vw, 28px); font-weight: 800; margin-top: 2px; }
   .tools { display: flex; gap: 8px; }
