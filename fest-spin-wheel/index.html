@@ -191,7 +191,7 @@
       spinning: 'Spinning…', print: '🖨️ Print token', next: 'Next child ➜',
       congrats: function (n) { return 'Congratulations, ' + n + '! 🎉'; },
       redeem: 'Show this token at: ', noname: 'Friend',
-      types: { money: 'MONEY TOKEN', game: 'GAME TOKEN', entry: 'ENTRY TOKEN', gift: 'GIFT TOKEN', star: 'PARTICIPATION TOKEN' },
+      types: { money: 'MONEY TOKEN', food: 'FOOD TOKEN', game: 'GAME TOKEN', entry: 'ENTRY TOKEN', gift: 'GIFT TOKEN', star: 'PARTICIPATION TOKEN' },
       starMsg: 'Everyone is a star! Enjoy the fest! ⭐',
       out: 'All prizes are over. Please ask the organiser.',
       tokenNo: 'Token No.', valid: 'Valid today only', for: 'Name', won: 'YOU WON', worn: ''
@@ -204,14 +204,14 @@
       spinning: 'తిరుగుతోంది…', print: '🖨️ టోకెన్ ప్రింట్', next: 'తర్వాతి చిన్నారి ➜',
       congrats: function (n) { return 'అభినందనలు, ' + n + '! 🎉'; },
       redeem: 'ఈ టోకెన్ చూపండి: ', noname: 'మిత్రమా',
-      types: { money: 'మనీ టోకెన్', game: 'గేమ్ టోకెన్', entry: 'ఎంట్రీ టోకెన్', gift: 'బహుమతి టోకెన్', star: 'పాల్గొన్న టోకెన్' },
+      types: { money: 'మనీ టోకెన్', food: 'ఫుడ్ టోకెన్', game: 'గేమ్ టోకెన్', entry: 'ఎంట్రీ టోకెన్', gift: 'బహుమతి టోకెన్', star: 'పాల్గొన్న టోకెన్' },
       starMsg: 'అందరూ స్టార్స్! ఫెస్ట్ ఆనందించండి! ⭐',
       out: 'బహుమతులు అయిపోయాయి. నిర్వాహకులను అడగండి.',
       tokenNo: 'టోకెన్ నం.', valid: 'ఈ రోజు మాత్రమే చెల్లుతుంది', for: 'పేరు', won: 'మీరు గెలిచారు', worn: ''
     }
   };
-  var TYPE_COLORS = { money: '#2f9e44', game: '#7048e8', entry: '#1c7ed6', gift: '#e8590c', star: '#d6336c' };
-  var TYPE_LIST = ['money', 'game', 'entry', 'gift', 'star'];
+  var TYPE_COLORS = { money: '#2f9e44', food: '#e8590c', game: '#7048e8', entry: '#1c7ed6', gift: '#0b7285', star: '#d6336c' };
+  var TYPE_LIST = ['money', 'food', 'game', 'entry', 'gift', 'star'];
   var PALETTE = ['#ff8787', '#ffc078', '#ffe066', '#8ce99a', '#63e6be', '#74c0fc', '#91a7ff', '#e599f7', '#faa2c1', '#c0eb75'];
 
   /* ---------- default settings (organiser can edit with the gear button) ---------- */
@@ -222,16 +222,18 @@
     subtitle: 'Play, enjoy, learn — everyone wins a token!',
     lang: 'en', sound: true, autoPrint: false, pin: '1234',
     prizes: [
-      { emoji: '💰', label: '₹20 Money Token', details: 'Worth ₹20 — spend it at any food or shop stall.', type: 'money', where: 'Snack / Shop stalls', weight: 6, left: 30 },
-      { emoji: '🎮', label: 'Free Game Play', details: 'One free turn at any game in the Game Zone.', type: 'game', where: 'Game Zone', weight: 14, left: '' },
-      { emoji: '🎨', label: 'Art Corner Entry', details: 'One free entry to create art in the Art Room.', type: 'entry', where: 'Art Room', weight: 12, left: '' },
-      { emoji: '⭐', label: 'Participation Star', details: 'Thank you for playing! Join any activity corner.', type: 'star', where: 'Any activity corner', weight: 14, left: '' },
-      { emoji: '🎁', label: 'Surprise Gift', details: 'Collect one surprise gift from the Gift Desk.', type: 'gift', where: 'Gift Desk', weight: 8, left: 40 },
-      { emoji: '🔬', label: 'Science Lab Entry', details: 'One free entry to the Science Lab experiments.', type: 'entry', where: 'Science Lab', weight: 12, left: '' },
-      { emoji: '💰', label: '₹10 Money Token', details: 'Worth ₹10 — spend it at any food or shop stall.', type: 'money', where: 'Snack / Shop stalls', weight: 12, left: 60 },
-      { emoji: '📒', label: 'Artist Pad', details: 'Collect one artist pad from the Stationery corner.', type: 'gift', where: 'Stationery corner', weight: 3, left: '' },
-      { emoji: '🏷️', label: 'Stickers', details: 'Collect a sticker sheet from the Gift Desk.', type: 'gift', where: 'Gift Desk', weight: 30, left: 50 },
-      { emoji: '📄', label: '20 colour papers', details: 'Collect a pack of 20 colour papers.', type: 'gift', where: 'Stationery corner', weight: 5, left: '' }
+      { emoji: '💰', label: '₹50 Money Token', details: 'Spend ₹50 at any Santa Shop stall.', type: 'money', where: 'Any Santa Shop stall', weight: 2, left: 3 },
+      { emoji: '💰', label: '₹30 Money Token', details: 'Spend ₹30 at any Santa Shop stall.', type: 'money', where: 'Any Santa Shop stall', weight: 5, left: 7 },
+      { emoji: '💰', label: '₹20 Money Token', details: 'Spend ₹20 at any Santa Shop stall.', type: 'money', where: 'Any Santa Shop stall', weight: 12, left: 17 },
+      { emoji: '💰', label: '₹10 Money Token', details: 'Spend ₹10 at any Santa Shop stall.', type: 'money', where: 'Any Santa Shop stall', weight: 16, left: 22 },
+      { emoji: '🍚', label: 'Pulav Plate', details: 'One free plate of pulav.', type: 'food', where: 'Food stall', weight: 8, left: 11 },
+      { emoji: '🍋', label: 'Lemon Juice', details: 'One free glass of lemon juice.', type: 'food', where: 'Food stall', weight: 10, left: 14 },
+      { emoji: '🍎', label: 'Fruit Cup', details: 'One free fruit cup.', type: 'food', where: 'Food stall', weight: 5, left: 7 },
+      { emoji: '🎁', label: 'Surprise Gift', details: 'Collect one surprise gift.', type: 'gift', where: 'Gift Desk', weight: 6, left: 8 },
+      { emoji: '✏️', label: 'Pencil Set', details: 'Collect one pencil set.', type: 'gift', where: 'Stationery stall', weight: 7, left: 10 },
+      { emoji: '📒', label: 'Artist Pad', details: 'Collect one artist pad.', type: 'gift', where: 'Stationery stall', weight: 4, left: 6 },
+      { emoji: '📄', label: '20 Colour Papers', details: 'Collect a pack of 20 colour papers.', type: 'gift', where: 'Stationery stall', weight: 5, left: 8 },
+      { emoji: '🏷️', label: 'Stickers', details: 'Collect a sticker sheet. Everyone gets a gift!', type: 'gift', where: 'Gift Desk', weight: 20, left: '' }
     ]
   };
 
@@ -243,6 +245,7 @@
   if (!cfg.event) cfg.event = DEFAULTS.event;
   if (!cfg.title || cfg.title === 'School Fest Spin Wheel') cfg.title = DEFAULTS.title;
   var EMOJI_RULES = [
+    [/pulav|pulao|biryani|rice|meal/i, '🍚'], [/lemon|lime/i, '🍋'], [/fruit/i, '🍎'], [/sandwich/i, '🥪'], [/vegetable|tomato|carrot|potato|veg\b/i, '🥕'], [/pencil set|pencils/i, '✏️'],
     [/paper|sheet/i, '📄'], [/\bpad\b|notebook|\bbook\b/i, '📒'], [/sticker/i, '🏷️'], [/crayon|colou?r pencil|sketch/i, '🖍️'],
     [/pencil/i, '✏️'], [/\bpen\b/i, '🖊️'], [/eraser|rubber/i, '🧽'], [/ruler|scale|geometry/i, '📏'], [/bookmark/i, '🔖'],
     [/money|rupee|₹|cash|coin/i, '💰'], [/magic/i, '🎪'], [/face paint/i, '🎭'], [/art|paint|draw/i, '🎨'], [/science|lab|experiment/i, '🔬'],
@@ -253,7 +256,7 @@
     [/ticket|entry|enter/i, '🎟️'], [/smile/i, '🤗'], [/star|participation/i, '⭐'], [/gift|surprise|present/i, '🎁']
   ];
   function suggestEmoji(label) { for (var i = 0; i < EMOJI_RULES.length; i++) if (EMOJI_RULES[i][0].test(label || '')) return EMOJI_RULES[i][1]; return ''; }
-  var QUICK_EMOJI = ['💰','🎮','🎨','🔬','🎁','⭐','🎟️','🎪','📒','📄','🏷️','🖍️','✏️','🖊️','📏','🧸','🎈','🍬','🍰','🍦','🧃','🍿','🏆','🏅','⚽','🧩','🎵','💃','📸','🎅','🎄','🤗'];
+  var QUICK_EMOJI = ['💰','🍚','🍋','🍎','🥪','🥕','🎮','🎨','🔬','🎁','⭐','🎟️','🎪','📒','📄','🏷️','🖍️','✏️','🖊️','📏','🧸','🎈','🍬','🍰','🍦','🧃','🍿','🏆','🏅','⚽','🧩','🎵','💃','📸','🎅','🎄','🤗'];
   var STALE_EMOJI = ['🎪', '🍬', '🤗'];   // old sample emojis, fixed if the name no longer matches them
   cfg.prizes.forEach(function (p) {
     if (p.details === undefined) p.details = '';
@@ -515,7 +518,7 @@
       '<div class="hint" style="margin:12px 0 4px">Tap a row\'s emoji box, then tap an emoji here. Typing a prize name also picks a matching emoji for you.</div>' +
       '<div id="quickEmoji" style="display:flex;flex-wrap:wrap;gap:4px">' + QUICK_EMOJI.map(function (e) { return '<button type="button" class="btn qe" style="padding:4px 8px;font-size:22px">' + e + '</button>'; }).join('') + '</div>' +
       '<table><thead><tr><th>Emoji</th><th>Name on wheel</th><th>Kind</th><th>Where to use it</th><th>Details printed on token</th><th>Chance</th><th>Qty left</th><th></th></tr></thead><tbody id="aRows">' + rows + '</tbody></table>' +
-      '<p class="hint">Details = the sentence printed under the prize on the token. Chance = how likely (bigger number = more often). Qty left: leave blank for unlimited; when it reaches 0 that prize is skipped automatically. Wheel shows 2–16 slices. Keep at least one “star” (participation) slice so no one is left without a token.</p>' +
+      '<p class="hint">Details = the sentence printed under the prize on the token. Chance = how likely (bigger number = more often). Qty left: leave blank for unlimited; when it reaches 0 that prize is skipped automatically. Wheel shows 2–16 slices. Keep one cheap slice (like Stickers) with Qty left blank, so everyone always gets a gift even when other prizes run out.</p>' +
       '<div style="margin-top:10px"><button class="btn" id="aAdd">+ Add slice</button> ' +
       '<button class="btn" id="aCsv">⬇ Download token log (no names)</button> ' +
       '<button class="btn" id="aDefaults">Restore sample prizes</button> ' +
@@ -574,8 +577,8 @@
         left: tr.querySelector('.r-left').value === '' ? '' : Math.max(0, Number(tr.querySelector('.r-left').value)) });
     });
     if (prizes.length < 2 || prizes.length > 16) { alert('Please keep between 2 and 16 slices.'); return; }
-    if (!prizes.some(function (p) { return p.type === 'star'; })) {
-      if (!confirm('There is no “star” (participation) slice, so if every prize runs out the wheel cannot give a token. Save anyway?')) return;
+    if (!prizes.some(function (p) { return p.left === '' && Number(p.weight) > 0; })) {
+      if (!confirm('Every slice has a limited quantity. If all of them run out, the wheel cannot give a gift. Make one cheap slice (like Stickers) unlimited by leaving Qty left blank. Save anyway?')) return;
     }
     cfg.prizes = prizes; cfg.title = $('aTitle').value.trim() || DEFAULTS.title; cfg.school = $('aSchool').value.trim() || DEFAULTS.school; cfg.event = $('aEvent').value.trim() || DEFAULTS.event;
     cfg.pin = $('aPin').value.trim() || '1234'; cfg.autoPrint = $('aAuto').value === '1';
