@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fest Spin Wheel</title>
+<title>Spin N Win · Abhyasa Vidyalayam Santa 2026</title>
 <style>
   :root {
     --ink: #2b2d42; --soft: #5c6178; --bg1: #fff7e0; --bg2: #ffe3ec; --card: #ffffff;
@@ -78,19 +78,23 @@
   /* printable token */
   #printArea { display: none; }
   .token { width: 72mm; margin: 0 auto; border: 2px dashed #000; padding: 4mm; text-align: center; font-family: "Nirmala UI", "Noto Sans Telugu", "Segoe UI", Arial, sans-serif; color: #000; }
-  .token .t-top { font-weight: 800; font-size: 14pt; }
-  .token .t-sub { font-size: 9pt; margin-bottom: 2mm; }
-  .token .t-name { font-size: 12pt; margin: 2mm 0; }
+  .token .t-top { font-weight: 800; font-size: 15pt; line-height: 1.2; border-bottom: 2px solid #000; padding-bottom: 2mm; }
+  .token .t-name { font-size: 18pt; font-weight: 800; margin: 2mm 0 0; word-break: break-word; }
+  .token .t-sub { font-size: 10pt; font-weight: 700; margin-bottom: 2mm; letter-spacing: .08em; }
+  .token .t-won { font-size: 10pt; font-weight: 800; letter-spacing: .15em; margin-top: 1mm; }
+  .token .t-details { font-size: 10.5pt; margin: 1mm 0; }
   .token .t-emoji { font-size: 34pt; line-height: 1.1; }
   .token .t-prize { font-size: 16pt; font-weight: 800; margin: 1mm 0; }
   .token .t-type { display: inline-block; border: 2px solid #000; border-radius: 3mm; padding: 0 3mm; font-weight: 800; font-size: 10pt; margin: 1mm 0; }
   .token .t-where { font-size: 11pt; margin-top: 2mm; }
   .token .t-no { font-size: 10pt; margin-top: 3mm; border-top: 1px dashed #000; padding-top: 2mm; }
   @media print {
-    @page { margin: 4mm; }
+    @page { size: 80mm auto; margin: 0; }
+    html, body { width: 80mm; margin: 0; padding: 0; background: #fff !important; min-height: 0; height: auto; overflow: visible; }
     body > *:not(#printArea) { display: none !important; }
-    #printArea { display: block; }
-    body { background: #fff; }
+    #printArea { display: block; padding: 3mm 4mm 10mm; }
+    .token { width: 72mm; border: 2px dashed #000; page-break-inside: avoid; break-inside: avoid; }
+    .token * { color: #000 !important; -webkit-print-color-adjust: economy; }
   }
 </style>
 </head>
@@ -98,7 +102,7 @@
 
 <header>
   <div>
-    <h1 id="title">Fest Spin Wheel</h1>
+    <h1 id="title">Spin N Win</h1>
     <small id="subtitle"></small>
   </div>
   <div class="tools">
@@ -139,6 +143,7 @@
       <div class="chip" id="rChip"></div>
       <h2 id="rTitle"></h2>
       <p id="rMsg"></p>
+      <p id="rDetails" style="margin-bottom:8px"></p>
       <div class="where" id="rWhere"></div>
       <div class="row2">
         <button class="big alt" id="btnPrint">🖨️ Print token</button>
@@ -173,7 +178,7 @@
       types: { money: 'MONEY TOKEN', game: 'GAME TOKEN', entry: 'ENTRY TOKEN', gift: 'GIFT TOKEN', star: 'PARTICIPATION TOKEN' },
       starMsg: 'Everyone is a star! Enjoy the fest! ⭐',
       out: 'All prizes are over. Please ask the organiser.',
-      tokenNo: 'Token No.', valid: 'Valid today only', for: 'For'
+      tokenNo: 'Token No.', valid: 'Valid today only', for: 'Name', won: 'YOU WON', worn: ''
     },
     te: {
       welcome: 'స్వాగతం! 🎉', ask: 'మీ పేరు రాసి చక్రం తిప్పండి', ph: 'మీ పేరు', go: 'పదండి! 🎈',
@@ -186,7 +191,7 @@
       types: { money: 'మనీ టోకెన్', game: 'గేమ్ టోకెన్', entry: 'ఎంట్రీ టోకెన్', gift: 'బహుమతి టోకెన్', star: 'పాల్గొన్న టోకెన్' },
       starMsg: 'అందరూ స్టార్స్! ఫెస్ట్ ఆనందించండి! ⭐',
       out: 'బహుమతులు అయిపోయాయి. నిర్వాహకులను అడగండి.',
-      tokenNo: 'టోకెన్ నం.', valid: 'ఈ రోజు మాత్రమే చెల్లుతుంది', for: 'పేరు'
+      tokenNo: 'టోకెన్ నం.', valid: 'ఈ రోజు మాత్రమే చెల్లుతుంది', for: 'పేరు', won: 'మీరు గెలిచారు', worn: ''
     }
   };
   var TYPE_COLORS = { money: '#2f9e44', game: '#7048e8', entry: '#1c7ed6', gift: '#e8590c', star: '#d6336c' };
@@ -195,20 +200,22 @@
 
   /* ---------- default settings (organiser can edit with the gear button) ---------- */
   var DEFAULTS = {
-    title: 'School Fest Spin Wheel',
+    title: 'Spin N Win',
+    school: 'Abhyasa Vidyalayam',
+    event: 'Santa 2026',
     subtitle: 'Play, enjoy, learn — everyone wins a token!',
     lang: 'en', sound: true, autoPrint: false, pin: '1234',
     prizes: [
-      { emoji: '💰', label: '₹20 Money Token', type: 'money', where: 'Snack / Shop stalls', weight: 6, left: 30 },
-      { emoji: '🎮', label: 'Free Game Play', type: 'game', where: 'Game Zone', weight: 14, left: '' },
-      { emoji: '🎨', label: 'Art Corner Entry', type: 'entry', where: 'Art Room', weight: 12, left: '' },
-      { emoji: '⭐', label: 'Participation Star', type: 'star', where: 'Any activity corner', weight: 14, left: '' },
-      { emoji: '🎁', label: 'Surprise Gift', type: 'gift', where: 'Gift Desk', weight: 8, left: 40 },
-      { emoji: '🔬', label: 'Science Lab Entry', type: 'entry', where: 'Science Lab', weight: 12, left: '' },
-      { emoji: '💰', label: '₹10 Money Token', type: 'money', where: 'Snack / Shop stalls', weight: 12, left: 60 },
-      { emoji: '🎪', label: 'Magic Show Entry', type: 'entry', where: 'Magic Show Hall', weight: 10, left: '' },
-      { emoji: '🍬', label: 'Sweet Treat', type: 'gift', where: 'Gift Desk', weight: 10, left: 80 },
-      { emoji: '🤗', label: 'Smile Token', type: 'star', where: 'Any activity corner', weight: 14, left: '' }
+      { emoji: '💰', label: '₹20 Money Token', details: 'Worth ₹20 — spend it at any food or shop stall.', type: 'money', where: 'Snack / Shop stalls', weight: 6, left: 30 },
+      { emoji: '🎮', label: 'Free Game Play', details: 'One free turn at any game in the Game Zone.', type: 'game', where: 'Game Zone', weight: 14, left: '' },
+      { emoji: '🎨', label: 'Art Corner Entry', details: 'One free entry to create art in the Art Room.', type: 'entry', where: 'Art Room', weight: 12, left: '' },
+      { emoji: '⭐', label: 'Participation Star', details: 'Thank you for playing! Join any activity corner.', type: 'star', where: 'Any activity corner', weight: 14, left: '' },
+      { emoji: '🎁', label: 'Surprise Gift', details: 'Collect one surprise gift from the Gift Desk.', type: 'gift', where: 'Gift Desk', weight: 8, left: 40 },
+      { emoji: '🔬', label: 'Science Lab Entry', details: 'One free entry to the Science Lab experiments.', type: 'entry', where: 'Science Lab', weight: 12, left: '' },
+      { emoji: '💰', label: '₹10 Money Token', details: 'Worth ₹10 — spend it at any food or shop stall.', type: 'money', where: 'Snack / Shop stalls', weight: 12, left: 60 },
+      { emoji: '🎪', label: 'Magic Show Entry', details: 'One free seat at the Magic Show.', type: 'entry', where: 'Magic Show Hall', weight: 10, left: '' },
+      { emoji: '🍬', label: 'Sweet Treat', details: 'Collect one sweet treat from the Gift Desk.', type: 'gift', where: 'Gift Desk', weight: 10, left: 80 },
+      { emoji: '🤗', label: 'Smile Token', details: 'Thank you for playing! Enjoy the fest with a smile.', type: 'star', where: 'Any activity corner', weight: 14, left: '' }
     ]
   };
 
@@ -216,6 +223,10 @@
   function load(key, fallback) { try { var v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch (e) { return fallback; } }
   function save(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) { /* ignore */ } }
   var cfg = load('fest_cfg', null) || JSON.parse(JSON.stringify(DEFAULTS));
+  if (!cfg.school) cfg.school = DEFAULTS.school;
+  if (!cfg.event) cfg.event = DEFAULTS.event;
+  if (!cfg.title || cfg.title === 'School Fest Spin Wheel') cfg.title = DEFAULTS.title;
+  cfg.prizes.forEach(function (p) { if (p.details === undefined) p.details = ''; });
   var log = load('fest_log', []);      // token no, time, prize, type — NO names
   var counter = load('fest_counter', 0);
 
@@ -351,8 +362,8 @@
   }
   function applyText() {
     var T = I18N[cfg.lang];
-    $('title').textContent = cfg.title; $('subtitle').textContent = cfg.subtitle;
-    document.title = cfg.title;
+    $('title').textContent = cfg.title; $('subtitle').textContent = cfg.school + ' · ' + cfg.event;
+    document.title = cfg.title + ' · ' + cfg.school + ' ' + cfg.event;
     $('tWelcome').textContent = T.welcome; $('tAsk').textContent = T.ask; $('nameIn').placeholder = T.ph;
     $('btnStart').textContent = T.go; $('tReady').textContent = T.ready; $('btnSpin').textContent = T.spin;
     $('btnBack').textContent = T.back; $('btnPrint').textContent = T.print; $('btnNext').textContent = T.next;
@@ -391,7 +402,7 @@
     $('rChip').textContent = T.types[p.type] || ''; $('rChip').style.background = TYPE_COLORS[p.type] || '#555';
     $('rTitle').textContent = p.label;
     $('rMsg').textContent = p.type === 'star' ? T.starMsg : T.congrats(name);
-    $('rWhere').textContent = T.redeem + p.where;
+    $('rDetails').textContent = p.details || ''; $('rWhere').textContent = T.redeem + p.where;
     $('btnSpin').disabled = false; $('btnBack').classList.remove('hidden');
     show('stepResult'); $('hub').disabled = true;
     if (cfg.autoPrint) setTimeout(printToken, 900);
@@ -407,11 +418,14 @@
     var no = ('0000' + current.no).slice(-4);
     $('printArea').innerHTML =
       '<div class="token">' +
-      '<div class="t-top">' + esc(cfg.title) + '</div><div class="t-sub">' + esc(cfg.subtitle) + '</div>' +
-      '<div class="t-name">' + T.for + ': <b>' + esc(current.name) + '</b></div>' +
+      '<div class="t-top">' + esc(cfg.school) + '<br>' + esc(cfg.event) + '</div>' +
+      '<div class="t-name">' + esc(current.name) + '</div>' +
+      '<div class="t-sub">' + esc(cfg.title) + '</div>' +
+      '<div class="t-won">' + T.won + '</div>' +
       '<div class="t-emoji">' + p.emoji + '</div>' +
       '<div class="t-prize">' + esc(p.label) + '</div>' +
       '<div class="t-type">' + (T.types[p.type] || '') + '</div>' +
+      (p.details ? '<div class="t-details">' + esc(p.details) + '</div>' : '') +
       '<div class="t-where">' + T.redeem + '<b>' + esc(p.where) + '</b></div>' +
       '<div class="t-no">' + T.tokenNo + ' ' + no + ' · ' + d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + '<br>' + T.valid + '</div>' +
       '</div>';
@@ -441,13 +455,14 @@
       '<div class="stats"><div class="stat">Tokens given: ' + log.length + '</div>' +
       TYPE_LIST.map(function (k) { return '<div class="stat" style="border-left:6px solid ' + TYPE_COLORS[k] + '">' + k + ': ' + (counts[k] || 0) + '</div>'; }).join('') + '</div>' +
       '<div class="grid2">' +
-      '<div><label>Fest title</label><input id="aTitle" value="' + esc(cfg.title) + '"></div>' +
-      '<div><label>Sub-title (printed on token)</label><input id="aSub" value="' + esc(cfg.subtitle) + '"></div>' +
+      '<div><label>Screen header</label><input id="aTitle" value="' + esc(cfg.title) + '"></div>' +
+      '<div><label>School name (printed at top of token)</label><input id="aSchool" value="' + esc(cfg.school) + '"></div>' +
+      '<div><label>Event name (printed at top of token)</label><input id="aEvent" value="' + esc(cfg.event) + '"></div>' +
       '<div><label>PIN for this screen</label><input id="aPin" value="' + esc(cfg.pin) + '"></div>' +
       '<div><label>Print automatically after each spin?</label><select id="aAuto"><option value="0">No — child/volunteer taps Print</option><option value="1"' + (cfg.autoPrint ? ' selected' : '') + '>Yes</option></select></div>' +
       '</div>' +
-      '<table><thead><tr><th>Emoji</th><th>Name on wheel</th><th>Kind</th><th>Where to use it</th><th>Chance</th><th>Qty left</th><th></th></tr></thead><tbody id="aRows">' + rows + '</tbody></table>' +
-      '<p class="hint">Chance = how likely (bigger number = more often). Qty left: leave blank for unlimited; when it reaches 0 that prize is skipped automatically. Wheel shows 2–16 slices. Keep at least one “star” (participation) slice so no one is left without a token.</p>' +
+      '<table><thead><tr><th>Emoji</th><th>Name on wheel</th><th>Kind</th><th>Where to use it</th><th>Details printed on token</th><th>Chance</th><th>Qty left</th><th></th></tr></thead><tbody id="aRows">' + rows + '</tbody></table>' +
+      '<p class="hint">Details = the sentence printed under the prize on the token. Chance = how likely (bigger number = more often). Qty left: leave blank for unlimited; when it reaches 0 that prize is skipped automatically. Wheel shows 2–16 slices. Keep at least one “star” (participation) slice so no one is left without a token.</p>' +
       '<div style="margin-top:10px"><button class="btn" id="aAdd">+ Add slice</button> ' +
       '<button class="btn" id="aCsv">⬇ Download token log (no names)</button> ' +
       '<button class="btn" id="aDefaults">Restore sample prizes</button> ' +
@@ -455,7 +470,7 @@
       '<div style="margin-top:16px"><button class="btn primary" id="aSave">Save & close</button> <button class="btn" id="aCancel">Cancel</button></div>' +
       '<p class="hint">Privacy: names are shown on screen and printed on the token only. They are never saved. The log keeps only token number, time and prize.</p>';
     wireRows();
-    $('aAdd').onclick = function () { addRow({ emoji: '🎈', label: 'New prize', type: 'star', where: '', weight: 5, left: '' }); };
+    $('aAdd').onclick = function () { addRow({ emoji: '🎈', label: 'New prize', type: 'star', where: '', details: '', weight: 5, left: '' }); };
     $('aCancel').onclick = closeAdmin;
     $('aSave').onclick = saveAdmin;
     $('aCsv').onclick = downloadCsv;
@@ -468,6 +483,7 @@
       '<td><input class="r-label" value="' + esc(p.label) + '"></td>' +
       '<td><select class="r-type">' + TYPE_LIST.map(function (k) { return '<option value="' + k + '"' + (k === p.type ? ' selected' : '') + '>' + k + '</option>'; }).join('') + '</select></td>' +
       '<td><input class="r-where" value="' + esc(p.where) + '"></td>' +
+      '<td><input class="r-details" value="' + esc(p.details || '') + '"></td>' +
       '<td><input class="r-weight" type="number" min="0" style="width:72px" value="' + esc(p.weight) + '"></td>' +
       '<td><input class="r-left" type="number" min="0" style="width:78px" value="' + esc(p.left === null ? '' : p.left) + '"></td>' +
       '<td><button class="btn danger r-del" title="Remove">✕</button></td></tr>';
@@ -485,14 +501,14 @@
     rows.forEach(function (tr) {
       var label = tr.querySelector('.r-label').value.trim(); if (!label) return;
       prizes.push({ emoji: tr.querySelector('.r-emoji').value.trim() || '🎁', label: label, type: tr.querySelector('.r-type').value,
-        where: tr.querySelector('.r-where').value.trim() || '—', weight: Math.max(0, Number(tr.querySelector('.r-weight').value) || 0),
+        where: tr.querySelector('.r-where').value.trim() || '—', details: tr.querySelector('.r-details').value.trim(), weight: Math.max(0, Number(tr.querySelector('.r-weight').value) || 0),
         left: tr.querySelector('.r-left').value === '' ? '' : Math.max(0, Number(tr.querySelector('.r-left').value)) });
     });
     if (prizes.length < 2 || prizes.length > 16) { alert('Please keep between 2 and 16 slices.'); return; }
     if (!prizes.some(function (p) { return p.type === 'star'; })) {
       if (!confirm('There is no “star” (participation) slice, so if every prize runs out the wheel cannot give a token. Save anyway?')) return;
     }
-    cfg.prizes = prizes; cfg.title = $('aTitle').value.trim() || DEFAULTS.title; cfg.subtitle = $('aSub').value.trim();
+    cfg.prizes = prizes; cfg.title = $('aTitle').value.trim() || DEFAULTS.title; cfg.school = $('aSchool').value.trim() || DEFAULTS.school; cfg.event = $('aEvent').value.trim() || DEFAULTS.event;
     cfg.pin = $('aPin').value.trim() || '1234'; cfg.autoPrint = $('aAuto').value === '1';
     save('fest_cfg', cfg); closeAdmin(); applyText(); drawWheel();
   }
