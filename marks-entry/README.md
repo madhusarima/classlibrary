@@ -33,9 +33,30 @@ After changing the code, use **Deploy → Manage deployments → Edit → New ve
   Keep these cells formatted as **plain text** so Sheets doesn't turn `6-10` into a date.
   A teacher can list several subjects separated by commas.
 - Keep the column headers in each tab unchanged.
-- Activity grades offered are set in `ACTIVITY_GRADES` at the top of `Code.gs` (A, B, C, D).
+- Activity grades are A, B, C (`ACTIVITY_GRADES` at the top of `Code.gs`).
 
 ## Before real use
 - Change the PINs (the sheet currently has sample PINs, and the Admin PIN is in plain text).
   Share the sheet itself only with people who should see every PIN.
 - Test with one teacher first.
+
+## Progress reports (printing)
+Sign in with the **Admin PIN** (Config tab) to print any class, or with a class teacher's PIN
+to print their own class. Choose the class -> **Open reports** -> **Print / Save as PDF**
+(paper A4, margins None, headers and footers off). One child per page.
+
+Each page follows the 2024 layout: header with logo, "Progress Report", the exam title,
+Name / Class, then the Academic Record table with **Subject | FA1 | FA2 | SA1 | Overall Grade**
+and a **Grand Grade** row, the activity grades, attendance, class teacher's notes and signatures.
+
+- Subjects shown = the rows of the *Subjects* tab whose `Classes` include the child's class.
+- Overall Grade: FA1 + FA2 + SA1 are scaled to the weights in *Config* (25/25/50), added,
+  rounded to a whole number, and looked up in the *Grades* tab. AB counts as 0.
+  A blank mark means "not entered yet": that subject's grade and the Grand Grade stay blank.
+- Grand Grade: the average of all subject totals (rounded), graded on the same scale.
+- Cards with missing marks, attendance or activity grades are flagged on screen only
+  (the flag does not print). Tick "Only complete cards" to print just the finished ones.
+- **Exam title:** set *Config > ExamTitle* to
+  `Continuous Comprehensive Evaluation : Summative Assessment 1`
+  (the year is added automatically). If left blank, that text is used.
+- **Logo:** the school logo is built in. To use another one, put a data-URL image in *Config > Logo*.

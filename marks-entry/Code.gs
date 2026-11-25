@@ -10,8 +10,11 @@
  */
 
 var EXAMS = ['FA1', 'FA2', 'SA1'];
-// Grades offered for activities (Craft, Music, ...). Edit freely.
-var ACTIVITY_GRADES = ['A', 'B', 'C', 'D'];
+// Grades offered for activities (Craft, Music, ...), as printed on the report.
+var ACTIVITY_GRADES = ['A', 'B', 'C'];
+var ACTIVITY_SCALE_TEXT = 'Grading Scale: A Good, B Satisfactory, C Needs to improve';
+// Used when Config > ExamTitle is blank.
+var DEFAULT_EXAM_TITLE = 'Continuous Comprehensive Evaluation : Summative Assessment 1';
 var TZ = 'Asia/Kolkata';
 
 function doGet() {
@@ -166,13 +169,39 @@ function upsert_(sheetName, items) {
 
 /* ------------------------- called from the page ------------------------- */
 
-function login(pin) {
+function adminPin_() {
+  var p = config_().AdminPIN;
+  return p === undefined || p === null ? '' : String(p).trim();
+}
+
+function allClasses_() {
+  var seen = {}, out = [];
+  table_('Students').rows.forEach(function (s) {
+    var c = classOf_(s.Roll);
+    if (c >= 1 && !seen[c]) { seen[c] = true; out.push(c); }
+  });
+  return out.sort(function (a, b) { return a - b; });
+}
+
+/** Who may print reports: the Admin (any class) or a class teacher (own class). */
+function reportAccess_(pin) {
+  pin = String(pin === null || pin === undefined ? '' : pin).trim();
+  var admin = adminPin_();
+  if (admin && pin === admin) return { name: 'Admin', classes: allClasses_(), isAdmin: true };
   var t = auth_(pin);
+  return { name: t.name, classes: t.classTeacherOf, isAdmin: false, teacher: t };
+}
+
+function login(pin) {
+  var acc = reportAccess_(pin);
+  var t = acc.isAdmin ? { subjects: [], classTeacherOf: [] } : acc.teacher;
   var cfg = config_();
   return {
-    name: t.name,
+    name: acc.name,
+    isAdmin: acc.isAdmin,
     subjects: t.subjects,
     classTeacherOf: t.classTeacherOf,
+    reportClasses: acc.classes,
     school: String(cfg.SchoolName || ''),
     year: String(cfg.Year || ''),
     activities: table_('Activities').rows.map(function (r) { return String(r.Name); }),
@@ -318,4 +347,114 @@ function saveActivity(pin, cls, activity, rows) {
     if (changed) log_(t.name, activity + ' grades ' + nameClass_(cls) + ': ' + changed + ' row(s) saved');
     return { changed: changed };
   });
+}
+
+/* ----------------------------- report cards ----------------------------- */
+
+function gradeScale_() {
+  return table_('Grades').rows
+    .map(function (r) { return { min: Number(r.Min), grade: String(r.Grade) }; })
+    .sort(function (a, b) { return b.min - a.min; });
+}
+
+function gradeOf_(scale, n) {
+  for (var i = 0; i < scale.length; i++) if (n >= scale[i].min) return scale[i].grade;
+  return scale.length ? scale[scale.length - 1].grade : '';
+}
+
+/** "96-100:A++, 91-95:A+, ..." built from the Grades tab */
+function scaleText_(scale) {
+  var hi = 100, parts = [];
+  scale.forEach(function (s) { parts.push(s.min + '-' + hi + ':' + s.grade); hi = s.min - 1; });
+  return 'Grading Scale: ' + parts.join(', ');
+}
+
+/** AB counts as 0, blank means "not entered yet" (null). */
+function markVal_(v) {
+  if (v === '' || v === null || v === undefined) return null;
+  if (/^ab$/i.test(String(v).trim())) return 0;
+  var n = Number(v);
+  return isFinite(n) ? n : null;
+}
+
+function getReportData(pin, cls) {
+  cls = Number(cls);
+  var acc = reportAccess_(pin);
+  if (acc.classes.indexOf(cls) < 0) throw new Error('You cannot print reports for ' + nameClass_(cls) + '.');
+
+  var cfg = config_(), scale = gradeScale_();
+  var weight = {
+    FA1: Number(cfg.FA1Weight) || 25,
+    FA2: Number(cfg.FA2Weight) || 25,
+    SA1: Number(cfg.SA1Weight) || 50
+  };
+  var subjects = table_('Subjects').rows
+    .filter(function (r) { return parseClasses_(r.Classes).indexOf(cls) >= 0; })
+    .map(function (r) {
+      return { name: String(r.Name).trim(),
+               max: { FA1: Number(r['FA1 Max']), FA2: Number(r['FA2 Max']), SA1: Number(r['SA1 Max']) } };
+    });
+  var activities = table_('Activities').rows.map(function (r) { return String(r.Name); });
+
+  var marks = {};
+  table_('Marks').rows.forEach(function (r) { marks[String(r.Roll).trim() + '|' + String(r.Subject).trim()] = r; });
+  var att = {};
+  table_('Class').rows.forEach(function (r) { att[String(r.Roll).trim()] = r; });
+  var actG = {};
+  table_('ActGrades').rows.forEach(function (r) {
+    (actG[String(r.Roll).trim()] = actG[String(r.Roll).trim()] || {})[String(r.Activity)] = String(r.Grade);
+  });
+
+  var cards = studentsOf_(cls).map(function (s) {
+    var key = String(s.roll), missing = [], sumTotals = 0, allDone = subjects.length > 0;
+    var rows = subjects.map(function (sub) {
+      var r = marks[key + '|' + sub.name] || {};
+      var done = true, total = 0, show = {};
+      EXAMS.forEach(function (e) {
+        var raw = r[e] === undefined || r[e] === null ? '' : r[e];
+        show[e] = /^ab$/i.test(String(raw).trim()) ? 'AB' : raw;
+        var n = markVal_(raw);
+        if (n === null) { done = false; missing.push(sub.name + ' ' + e); }
+        else if (sub.max[e] > 0) total += n / sub.max[e] * weight[e];
+      });
+      var t = done ? Math.round(total) : null;
+      if (done) sumTotals += t; else allDone = false;
+      return { name: sub.name, FA1: show.FA1, FA2: show.FA2, SA1: show.SA1,
+               total: t, grade: done ? gradeOf_(scale, t) : '' };
+    });
+    var grand = allDone ? Math.round(sumTotals / subjects.length) : null;
+
+    var a = att[key] || {};
+    var wd = a['Working Days'] === undefined ? '' : a['Working Days'];
+    var pr = a['Days Present'] === undefined ? '' : a['Days Present'];
+    if (wd === '' || pr === '') missing.push('Attendance');
+    var grades = actG[key] || {};
+    var acts = activities.map(function (n) {
+      if (!grades[n]) missing.push(n);
+      return { name: n, grade: grades[n] || '' };
+    });
+    return {
+      roll: s.roll, name: s.name, rows: rows,
+      grandGrade: grand === null ? '' : gradeOf_(scale, grand),
+      activities: acts, workingDays: wd, present: pr,
+      note: a.Note === undefined ? '' : String(a.Note),
+      missing: missing
+    };
+  });
+
+  var logo = String(cfg.Logo || '');
+  return {
+    school: String(cfg.SchoolName || ''),
+    address1: String(cfg.Address1 || ''),
+    address2: String(cfg.Address2 || ''),
+    title: String(cfg.ReportTitle || 'Progress Report'),
+    exam: String(cfg.ExamTitle || '').trim() || DEFAULT_EXAM_TITLE,
+    year: String(cfg.Year || ''),
+    classLabel: String(cls),
+    logo: logo.indexOf('data:image') === 0 ? logo : '',
+    subjects: subjects,
+    scaleText: scaleText_(scale),
+    actScaleText: ACTIVITY_SCALE_TEXT,
+    cards: cards
+  };
 }
