@@ -159,6 +159,7 @@
       <h2 id="rTitle"></h2>
       <p id="rMsg"></p>
       <p id="rDetails" style="margin-bottom:8px"></p>
+      <p id="rPrintNote" style="margin:0 0 8px;font-weight:700;color:#7048e8"></p>
       <div class="where" id="rWhere"></div>
       <div class="row2">
         <button class="big alt" id="btnPrint">🖨️ Print token</button>
@@ -194,7 +195,7 @@
       types: { money: 'MONEY TOKEN', food: 'FOOD TOKEN', game: 'GAME TOKEN', entry: 'ENTRY TOKEN', gift: 'GIFT TOKEN', star: 'PARTICIPATION TOKEN' },
       starMsg: 'Everyone is a star! Enjoy the fest! ⭐',
       out: 'All prizes are over. Please ask the organiser.',
-      tokenNo: 'Token No.', valid: 'Valid today only', for: 'Name', won: 'YOU WON', worn: ''
+      printing: function (n) { return 'Your token prints in ' + n + '…'; }, tokenNo: 'Token No.', valid: 'Valid today only', for: 'Name', won: 'YOU WON', worn: ''
     },
     te: {
       welcome: 'స్వాగతం! 🎉', ask: 'మీ పేరు రాసి చక్రం తిప్పండి', ph: 'మీ పేరు', go: 'పదండి! 🎈',
@@ -207,7 +208,7 @@
       types: { money: 'మనీ టోకెన్', food: 'ఫుడ్ టోకెన్', game: 'గేమ్ టోకెన్', entry: 'ఎంట్రీ టోకెన్', gift: 'బహుమతి టోకెన్', star: 'పాల్గొన్న టోకెన్' },
       starMsg: 'అందరూ స్టార్స్! ఫెస్ట్ ఆనందించండి! ⭐',
       out: 'బహుమతులు అయిపోయాయి. నిర్వాహకులను అడగండి.',
-      tokenNo: 'టోకెన్ నం.', valid: 'ఈ రోజు మాత్రమే చెల్లుతుంది', for: 'పేరు', won: 'మీరు గెలిచారు', worn: ''
+      printing: function (n) { return 'మీ టోకెన్ ' + n + ' సెకన్లలో ప్రింట్ అవుతుంది…'; }, tokenNo: 'టోకెన్ నం.', valid: 'ఈ రోజు మాత్రమే చెల్లుతుంది', for: 'పేరు', won: 'మీరు గెలిచారు', worn: ''
     }
   };
   var TYPE_COLORS = { money: '#2f9e44', food: '#e8590c', game: '#7048e8', entry: '#1c7ed6', gift: '#0b7285', star: '#d6336c' };
@@ -492,15 +493,29 @@
     $('rDetails').textContent = p.details || ''; $('rWhere').textContent = T.redeem + p.where;
     $('btnSpin').disabled = false; $('btnBack').classList.remove('hidden');
     show('stepResult'); $('hub').disabled = true;
-    if (cfg.autoPrint) setTimeout(printToken, 900);
+    if (cfg.autoPrint) startAutoPrint();
     else setTimeout(function () { $('btnPrint').focus(); }, 50);
   }
+  var AUTO_PRINT_SECONDS = 6;       // let the child enjoy the surprise before the printer starts
+  var autoTimer = 0, autoLeft = 0;
+  function stopAutoPrint() { clearInterval(autoTimer); autoTimer = 0; $('rPrintNote').textContent = ''; }
+  function startAutoPrint() {
+    stopAutoPrint(); autoLeft = AUTO_PRINT_SECONDS;
+    var show = function () { $('rPrintNote').textContent = '🖨️ ' + t('printing')(autoLeft); };
+    show();
+    autoTimer = setInterval(function () {
+      autoLeft--;
+      if (autoLeft <= 0) { stopAutoPrint(); printToken(); } else show();
+    }, 1000);
+  }
   function nextChild() {
+    if (autoTimer) { stopAutoPrint(); printToken(); }   // never lose a token: print it now if the next child is called early
     name = ''; current = null; glowIdx = -1; $('nameIn').value = ''; $('btnSpin').textContent = t('spin');
     drawWheel(); show('stepName'); idle(); $('nameIn').focus();
   }
   function printToken() {
     if (!current) return;
+    stopAutoPrint();
     var T = I18N[cfg.lang], p = current.prize, d = current.time;
     var no = ('0000' + current.no).slice(-4);
     $('printArea').innerHTML =
