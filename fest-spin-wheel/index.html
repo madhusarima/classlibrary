@@ -222,7 +222,7 @@
     school: 'Abhyasa Vidyalayam',
     event: 'Santa 2026',
     subtitle: 'Play, enjoy, learn — everyone wins a token!',
-    lang: 'en', sound: true, autoPrint: false, pin: '1234',
+    lang: 'en', sound: true, autoPrint: false, printDelay: 6, pin: '1234',
     prizes: [
       { emoji: '🎟️', label: 'Tambola Token', details: 'Participation token for the Tambola game. Join in and have fun!', type: 'star', where: 'Tambola corner', weight: 8, left: '' },
       { emoji: '✏️', label: 'Pencil', details: 'Collect one pencil.', type: 'gift', where: 'Stationery stall', weight: 5, left: 10 },
@@ -337,11 +337,11 @@
 
   /* ---------- wheel drawing ---------- */
   var canvas = $('wheel'), ctx = canvas.getContext('2d');
-  var rot = 0, spinning = false, idleTimer = 0, glowIdx = -1;
+  var rot = 0, spinning = false, idleTimer = 0;
   var TAU = Math.PI * 2;
 
   function drawWheel() {
-    var P = cfg.prizes, n = P.length, W = canvas.width, c = W / 2, R = c - 26, arc = TAU / n;
+    var P = cfg.prizes, n = P.length, W = canvas.width, c = W / 2, R = c - 40, arc = TAU / n;
     ctx.clearRect(0, 0, W, W);
     // rim
     ctx.beginPath(); ctx.arc(c, c, c - 6, 0, TAU); ctx.fillStyle = '#2b2d42'; ctx.fill();
@@ -351,27 +351,59 @@
       ctx.fillStyle = (b % 2 ? '#ffd43b' : '#fff'); ctx.fill();
     }
     ctx.save(); ctx.translate(c, c); ctx.rotate(rot);
-    for (var i = 0; i < n; i++) {
-      var a0 = i * arc, a1 = a0 + arc;
-      ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, R, a0, a1); ctx.closePath();
-      ctx.fillStyle = PALETTE[i % PALETTE.length]; ctx.fill();
-      ctx.lineWidth = 3; ctx.strokeStyle = '#fff'; ctx.stroke();
-      if (i === glowIdx) { ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.fill(); }
-      // text along the radius
-      ctx.save(); ctx.rotate(a0 + arc / 2);
-      ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#2b2d42';
-      var emojiSize = Math.min(R * .17, 78, arc * R * .42);
-      ctx.font = emojiSize + 'px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif';
-      ctx.fillText(P[i].emoji || '', R - 14, 0);
-      var label = P[i].label || '', fs = Math.min(R * .075, 34, Math.max(14, arc * R * .2)), maxW = R * (n > 16 ? .44 : .52);
-      ctx.font = '700 ' + fs + 'px "Nirmala UI","Noto Sans Telugu","Segoe UI",sans-serif';
-      while (ctx.measureText(label).width > maxW && fs > 11) { fs -= 1; ctx.font = '700 ' + fs + 'px "Nirmala UI","Noto Sans Telugu","Segoe UI",sans-serif'; }
-      while (ctx.measureText(label).width > maxW && label.length > 4) label = label.slice(0, -2);
-      ctx.fillText(label, R - emojiSize - 28, 0);
-      ctx.restore();
-    }
+    for (var i = 0; i < n; i++) drawSlice(i, null);
+    var fx = winFx();
+    if (fx) drawSlice(winIdx, fx);            // the winner is drawn last, on top, so it can grow over its neighbours
     ctx.restore();
   }
+
+  function drawSlice(i, fx) {
+    var P = cfg.prizes, n = P.length, W = canvas.width, c = W / 2, R = c - 40, arc = TAU / n, a0 = i * arc, a1 = a0 + arc;
+    ctx.save();
+    if (fx) {                                   // grow around a point inside the slice, with a golden glow
+      var mid = a0 + arc / 2, pr = R * .55, px = Math.cos(mid) * pr, py = Math.sin(mid) * pr;
+      ctx.translate(px, py); ctx.scale(fx.scale, fx.scale); ctx.translate(-px, -py);
+      ctx.shadowColor = 'rgba(255,196,30,.98)'; ctx.shadowBlur = 22 + 42 * fx.glow;
+    }
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, R, a0, a1); ctx.closePath();
+    ctx.fillStyle = PALETTE[i % PALETTE.length]; ctx.fill();
+    ctx.lineWidth = fx ? 5 : 3; ctx.strokeStyle = fx ? '#ffe066' : '#fff'; ctx.stroke();
+    if (fx) { ctx.shadowBlur = 0; ctx.fillStyle = 'rgba(255,255,255,' + (.12 + .26 * fx.glow) + ')'; ctx.fill(); }
+    // text along the radius
+    ctx.shadowBlur = 0;
+    ctx.save(); ctx.rotate(a0 + arc / 2);
+    ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#2b2d42';
+    var emojiSize = Math.min(R * .17, 78, arc * R * .42);
+    ctx.font = emojiSize + 'px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif';
+    ctx.fillText(P[i].emoji || '', R - 14, 0);
+    var label = P[i].label || '', fs = Math.min(R * .075, 34, Math.max(14, arc * R * .2)), maxW = R * (n > 16 ? .44 : .52);
+    ctx.font = '700 ' + fs + 'px "Nirmala UI","Noto Sans Telugu","Segoe UI",sans-serif';
+    while (ctx.measureText(label).width > maxW && fs > 11) { fs -= 1; ctx.font = '700 ' + fs + 'px "Nirmala UI","Noto Sans Telugu","Segoe UI",sans-serif'; }
+    while (ctx.measureText(label).width > maxW && label.length > 4) label = label.slice(0, -2);
+    ctx.fillText(label, R - emojiSize - 28, 0);
+    ctx.restore();
+    ctx.restore();
+  }
+
+  /* winner effect: the slice under the pointer swells, settles back, then keeps glowing until the next child */
+  var winIdx = -1, winT0 = 0, winRAF = 0;
+  function winFx() {
+    if (winIdx < 0) return null;
+    var t = (performance.now() - winT0) / 1000, pop = 0, glow;
+    var reduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    if (!reduced) {
+      if (t < .5) { var x = t / .5 - 1; pop = 1 + 2.70158 * x * x * x + 1.70158 * x * x; }   // swell, with a little overshoot
+      else if (t < .8) pop = 1;                                                              // hold
+      else if (t < 1.6) { var y = (t - .8) / .8; pop = 1 - (y < .5 ? 2 * y * y : 1 - Math.pow(-2 * y + 2, 2) / 2); }   // go back
+    }
+    glow = t < 1.6 ? 1 : .55 + .45 * Math.sin((t - 1.6) * 4.4);                              // then a steady glow pulse
+    return { scale: 1 + .17 * pop, glow: glow };
+  }
+  function startWinFx(idx) {
+    winIdx = idx; winT0 = performance.now(); cancelAnimationFrame(winRAF);
+    (function loop() { if (winIdx < 0) return; drawWheel(); winRAF = requestAnimationFrame(loop); })();
+  }
+  function stopWinFx() { winIdx = -1; cancelAnimationFrame(winRAF); }
 
   /* ---------- prize choice: weighted random, skips prizes that ran out ---------- */
   function hasStock(p) { return p.left === '' || p.left === null || Number(p.left) > 0; }
@@ -483,7 +515,7 @@
     log.push({ no: counter, time: new Date().toISOString(), prize: p.label, type: p.type });
     save('fest_log', log); save('fest_cfg', cfg);
     current = { no: counter, prize: p, name: name, time: new Date() };
-    glowIdx = idx; drawWheel();
+    startWinFx(idx);
     cheerSound(); confetti(160); setTimeout(function () { confetti(90); }, 500);
     var T = I18N[cfg.lang];
     $('rEmoji').textContent = p.emoji;
@@ -496,11 +528,11 @@
     if (cfg.autoPrint) startAutoPrint();
     else setTimeout(function () { $('btnPrint').focus(); }, 50);
   }
-  var AUTO_PRINT_SECONDS = 6;       // let the child enjoy the surprise before the printer starts
   var autoTimer = 0, autoLeft = 0;
   function stopAutoPrint() { clearInterval(autoTimer); autoTimer = 0; $('rPrintNote').textContent = ''; }
   function startAutoPrint() {
-    stopAutoPrint(); autoLeft = AUTO_PRINT_SECONDS;
+    stopAutoPrint(); autoLeft = Math.max(0, Math.min(60, parseInt(cfg.printDelay, 10) || 0));
+    if (autoLeft === 0) { printToken(); return; }
     var show = function () { $('rPrintNote').textContent = '🖨️ ' + t('printing')(autoLeft); };
     show();
     autoTimer = setInterval(function () {
@@ -510,7 +542,7 @@
   }
   function nextChild() {
     if (autoTimer) { stopAutoPrint(); printToken(); }   // never lose a token: print it now if the next child is called early
-    name = ''; current = null; glowIdx = -1; $('nameIn').value = ''; $('btnSpin').textContent = t('spin');
+    name = ''; current = null; stopWinFx(); $('nameIn').value = ''; $('btnSpin').textContent = t('spin');
     drawWheel(); show('stepName'); idle(); $('nameIn').focus();
   }
   function printToken() {
@@ -562,6 +594,7 @@
       '<div><label>Event name (printed at top of token)</label><input id="aEvent" value="' + esc(cfg.event) + '"></div>' +
       '<div><label>PIN for this screen</label><input id="aPin" value="' + esc(cfg.pin) + '"></div>' +
       '<div><label>Print automatically after each spin?</label><select id="aAuto"><option value="0">No — child/volunteer taps Print</option><option value="1"' + (cfg.autoPrint ? ' selected' : '') + '>Yes</option></select></div>' +
+      '<div><label>Wait before auto-print (seconds, 0–60)</label><input id="aDelay" type="number" min="0" max="60" value="' + esc(cfg.printDelay) + '"></div>' +
       '</div>' +
       '<div class="hint" style="margin:12px 0 4px">Tap a row\'s emoji box, then tap an emoji here. Typing a prize name also picks a matching emoji for you.</div>' +
       '<div id="quickEmoji" style="display:flex;flex-wrap:wrap;gap:4px">' + QUICK_EMOJI.map(function (e) { return '<button type="button" class="btn qe" style="padding:4px 8px;font-size:22px">' + e + '</button>'; }).join('') + '</div>' +
@@ -630,6 +663,7 @@
     }
     cfg.prizes = prizes; cfg.title = $('aTitle').value.trim() || DEFAULTS.title; cfg.school = $('aSchool').value.trim() || DEFAULTS.school; cfg.event = $('aEvent').value.trim() || DEFAULTS.event;
     cfg.v = DEFAULTS.v; cfg.pin = $('aPin').value.trim() || '1234'; cfg.autoPrint = $('aAuto').value === '1';
+    var dly = parseInt($('aDelay').value, 10); cfg.printDelay = isNaN(dly) ? 6 : Math.max(0, Math.min(60, dly));
     save('fest_cfg', cfg); closeAdmin(); applyText(); drawWheel(); toast('✔ Saved — ' + cfg.prizes.length + ' slices on the wheel');
   }
   function toast(msg) {
