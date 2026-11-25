@@ -216,36 +216,37 @@
 
   /* ---------- default settings (organiser can edit with the gear button) ---------- */
   var DEFAULTS = {
+    v: 3,
     title: 'Spin N Win',
     school: 'Abhyasa Vidyalayam',
     event: 'Santa 2026',
     subtitle: 'Play, enjoy, learn — everyone wins a token!',
     lang: 'en', sound: true, autoPrint: false, pin: '1234',
     prizes: [
-      { emoji: '🎟️', label: 'Tambola Token', details: 'Participation token for the Tambola game. Join in and have fun!', type: 'star', where: 'Tambola corner', weight: 30, left: '' },
-      { emoji: '💰', label: '₹20 Money Token', details: 'Spend ₹20 at any Santa Shop stall.', type: 'money', where: 'Any Santa Shop stall', weight: 1, left: 1 },
-      { emoji: '💰', label: '₹10 Money Token', details: 'Spend ₹10 at any Santa Shop stall.', type: 'money', where: 'Any Santa Shop stall', weight: 2, left: 2 },
+      { emoji: '🎟️', label: 'Tambola Token', details: 'Participation token for the Tambola game. Join in and have fun!', type: 'star', where: 'Tambola corner', weight: 8, left: '' },
+      { emoji: '✏️', label: 'Pencil', details: 'Collect one pencil.', type: 'gift', where: 'Stationery stall', weight: 5, left: 10 },
+      { emoji: '🏷️', label: 'Stickers', details: 'Collect a sticker sheet. Everyone gets a gift!', type: 'gift', where: 'Gift Desk', weight: 30, left: '' },
       { emoji: '🍚', label: 'Pulav Plate', details: 'One free plate of pulav.', type: 'food', where: 'Food stall', weight: 1, left: 1 },
-      { emoji: '🍋', label: 'Lemon Juice', details: 'One free glass of lemon juice.', type: 'food', where: 'Food stall', weight: 2, left: 2 },
-      { emoji: '🍎', label: 'Fruit Cup', details: 'One free fruit cup.', type: 'food', where: 'Food stall', weight: 1, left: 1 },
-      { emoji: '🎁', label: 'Surprise Gift', details: 'Collect one surprise gift.', type: 'gift', where: 'Gift Desk', weight: 2, left: 2 },
-      { emoji: '🧸', label: 'Mini Soft Toy', details: 'Collect one mini soft toy.', type: 'gift', where: 'Gift Desk', weight: 1, left: 2 },
-      { emoji: '🧩', label: 'Mini Puzzle', details: 'Collect one mini puzzle.', type: 'gift', where: 'Gift Desk', weight: 1, left: 1 },
-      { emoji: '🖊️', label: 'Fancy Pen', details: 'Collect one fancy pen.', type: 'gift', where: 'Stationery stall', weight: 2, left: 2 },
-      { emoji: '📓', label: 'Fancy Notebook', details: 'Collect one fancy notebook.', type: 'gift', where: 'Stationery stall', weight: 1, left: 1 },
-      { emoji: '🎀', label: 'Hair Clips', details: 'Collect a pair of fancy hair clips.', type: 'gift', where: 'Accessories stall', weight: 2, left: 2 },
-      { emoji: '🔑', label: 'Key Ring', details: 'Collect one key ring.', type: 'gift', where: 'Accessories stall', weight: 1, left: 1 },
+      { emoji: '🎈', label: 'Balloon', details: 'Collect a balloon.', type: 'gift', where: 'Gift Desk', weight: 5, left: 15 },
       { emoji: '🖍️', label: 'Crayon Pack', details: 'Collect one crayon pack.', type: 'gift', where: 'Stationery stall', weight: 2, left: 2 },
+      { emoji: '🍬', label: 'Toffee', details: 'Collect a toffee.', type: 'gift', where: 'Gift Desk', weight: 6, left: 20 },
+      { emoji: '💰', label: '₹10 Money Token', details: 'Spend ₹10 at any Santa Shop stall.', type: 'money', where: 'Any Santa Shop stall', weight: 2, left: 2 },
+      { emoji: '📏', label: 'Ruler', details: 'Collect one ruler.', type: 'gift', where: 'Stationery stall', weight: 4, left: 6 },
+      { emoji: '🧸', label: 'Mini Soft Toy', details: 'Collect one mini soft toy.', type: 'gift', where: 'Gift Desk', weight: 1, left: 2 },
+      { emoji: '🍭', label: 'Lollipop', details: 'Collect a lollipop.', type: 'gift', where: 'Gift Desk', weight: 5, left: 10 },
+      { emoji: '🖊️', label: 'Fancy Pen', details: 'Collect one fancy pen.', type: 'gift', where: 'Stationery stall', weight: 2, left: 2 },
+      { emoji: '🍋', label: 'Lemon Juice', details: 'One free glass of lemon juice.', type: 'food', where: 'Food stall', weight: 2, left: 2 },
+      { emoji: '🧽', label: 'Eraser & Sharpener', details: 'Collect an eraser and a sharpener.', type: 'gift', where: 'Stationery stall', weight: 5, left: 10 },
+      { emoji: '🎀', label: 'Hair Clips', details: 'Collect a pair of fancy hair clips.', type: 'gift', where: 'Accessories stall', weight: 2, left: 2 },
+      { emoji: '🔖', label: 'Bookmark', details: 'Collect one bookmark.', type: 'gift', where: 'Gift Desk', weight: 5, left: 10 },
+      { emoji: '💰', label: '₹20 Money Token', details: 'Spend ₹20 at any Santa Shop stall.', type: 'money', where: 'Any Santa Shop stall', weight: 1, left: 1 },
+      { emoji: '📄', label: '5 Colour Papers', details: 'Collect 5 colour papers.', type: 'gift', where: 'Stationery stall', weight: 6, left: 10 },
+      { emoji: '🎁', label: 'Surprise Gift', details: 'Collect one surprise gift.', type: 'gift', where: 'Gift Desk', weight: 2, left: 2 },
+      { emoji: '🧩', label: 'Mini Puzzle', details: 'Collect one mini puzzle.', type: 'gift', where: 'Gift Desk', weight: 1, left: 1 },
       { emoji: '✂️', label: 'Craft Scissors', details: 'Collect one pair of craft scissors.', type: 'gift', where: 'Stationery stall', weight: 2, left: 2 },
-      { emoji: '📏', label: 'Ruler', details: 'Collect one ruler.', type: 'gift', where: 'Stationery stall', weight: 3, left: 4 },
-      { emoji: '✏️', label: 'Pencil', details: 'Collect one pencil.', type: 'gift', where: 'Stationery stall', weight: 5, left: 6 },
-      { emoji: '🧽', label: 'Eraser & Sharpener', details: 'Collect an eraser and a sharpener.', type: 'gift', where: 'Stationery stall', weight: 5, left: 6 },
-      { emoji: '📄', label: '5 Colour Papers', details: 'Collect 5 colour papers.', type: 'gift', where: 'Stationery stall', weight: 5, left: 6 },
-      { emoji: '🔖', label: 'Bookmark', details: 'Collect one bookmark.', type: 'gift', where: 'Gift Desk', weight: 4, left: 6 },
-      { emoji: '🍭', label: 'Lollipop', details: 'Collect a lollipop.', type: 'gift', where: 'Gift Desk', weight: 4, left: 6 },
-      { emoji: '🎈', label: 'Balloon', details: 'Collect a balloon.', type: 'gift', where: 'Gift Desk', weight: 5, left: 12 },
-      { emoji: '🍬', label: 'Toffee', details: 'Collect a toffee.', type: 'gift', where: 'Gift Desk', weight: 6, left: 14 },
-      { emoji: '🏷️', label: 'Stickers', details: 'Collect a sticker sheet. Everyone gets a gift!', type: 'gift', where: 'Gift Desk', weight: 12, left: 18 }
+      { emoji: '🍎', label: 'Fruit Cup', details: 'One free fruit cup.', type: 'food', where: 'Food stall', weight: 1, left: 1 },
+      { emoji: '📓', label: 'Fancy Notebook', details: 'Collect one fancy notebook.', type: 'gift', where: 'Stationery stall', weight: 1, left: 1 },
+      { emoji: '🔑', label: 'Key Ring', details: 'Collect one key ring.', type: 'gift', where: 'Accessories stall', weight: 1, left: 1 }
     ]
   };
 
@@ -253,6 +254,9 @@
   function load(key, fallback) { try { var v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch (e) { return fallback; } }
   function save(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) { /* ignore */ } }
   var cfg = load('fest_cfg', null) || JSON.parse(JSON.stringify(DEFAULTS));
+  Object.keys(DEFAULTS).forEach(function (k) { if (cfg[k] === undefined || cfg[k] === null) cfg[k] = JSON.parse(JSON.stringify(DEFAULTS[k])); });
+  if (!I18N[cfg.lang]) cfg.lang = 'en';
+  if (cfg.v !== DEFAULTS.v) { cfg.prizes = JSON.parse(JSON.stringify(DEFAULTS.prizes)); cfg.v = DEFAULTS.v; save('fest_cfg', cfg); }
   if (!cfg.school) cfg.school = DEFAULTS.school;
   if (!cfg.event) cfg.event = DEFAULTS.event;
   if (!cfg.title || cfg.title === 'School Fest Spin Wheel') cfg.title = DEFAULTS.title;
@@ -370,17 +374,31 @@
 
   /* ---------- prize choice: weighted random, skips prizes that ran out ---------- */
   function hasStock(p) { return p.left === '' || p.left === null || Number(p.left) > 0; }
+  var recent = [];            // last few prizes shown, so the same thing never repeats back to back
+  var RECENT_MAX = 3;
   function pickPrize() {
-    var pool = [], total = 0;
-    cfg.prizes.forEach(function (p, i) { if (hasStock(p) && Number(p.weight) > 0) { pool.push(i); total += Number(p.weight); } });
-    if (!pool.length) { // nothing weighted left: fall back to any participation prize
-      cfg.prizes.forEach(function (p, i) { if (p.type === 'star') pool.push(i); });
-      if (!pool.length) return -1;
-      return pool[(Math.random() * pool.length) | 0];
+    function build(skip) {
+      var pool = [], total = 0;
+      cfg.prizes.forEach(function (p, i) {
+        if (hasStock(p) && Number(p.weight) > 0 && skip.indexOf(i) < 0) { pool.push(i); total += Number(p.weight); }
+      });
+      return { pool: pool, total: total };
     }
-    var r = Math.random() * total;
-    for (var k = 0; k < pool.length; k++) { r -= Number(cfg.prizes[pool[k]].weight); if (r <= 0) return pool[k]; }
-    return pool[pool.length - 1];
+    var b = build(recent);
+    if (!b.pool.length) b = build(recent.slice(-1));   // not enough variety left: only avoid the very last one
+    if (!b.pool.length) b = build([]);
+    var idx = -1;
+    if (!b.pool.length) {   // nothing weighted left: fall back to any participation slice
+      var st = []; cfg.prizes.forEach(function (p, i) { if (p.type === 'star') st.push(i); });
+      if (!st.length) return -1;
+      idx = st[(Math.random() * st.length) | 0];
+    } else {
+      var r = Math.random() * b.total;
+      idx = b.pool[b.pool.length - 1];
+      for (var k = 0; k < b.pool.length; k++) { r -= Number(cfg.prizes[b.pool[k]].weight); if (r <= 0) { idx = b.pool[k]; break; } }
+    }
+    recent.push(idx); if (recent.length > RECENT_MAX) recent.shift();
+    return idx;
   }
   function indexAtPointer() {
     var arc = TAU / cfg.prizes.length, a = ((-Math.PI / 2 - rot) % TAU + TAU) % TAU;
@@ -596,7 +614,7 @@
       if (!confirm('Every slice has a limited quantity. If all of them run out, the wheel cannot give a gift. Make one cheap slice (like Stickers) unlimited by leaving Qty left blank. Save anyway?')) return;
     }
     cfg.prizes = prizes; cfg.title = $('aTitle').value.trim() || DEFAULTS.title; cfg.school = $('aSchool').value.trim() || DEFAULTS.school; cfg.event = $('aEvent').value.trim() || DEFAULTS.event;
-    cfg.pin = $('aPin').value.trim() || '1234'; cfg.autoPrint = $('aAuto').value === '1';
+    cfg.v = DEFAULTS.v; cfg.pin = $('aPin').value.trim() || '1234'; cfg.autoPrint = $('aAuto').value === '1';
     save('fest_cfg', cfg); closeAdmin(); applyText(); drawWheel(); toast('✔ Saved — ' + cfg.prizes.length + ' slices on the wheel');
   }
   function toast(msg) {
@@ -621,7 +639,7 @@
   $('adminOverlay').addEventListener('mousedown', function (e) { if (e.target === this && !$('aSave')) closeAdmin(); });
 
   applyText(); drawWheel(); show('stepName'); idle(); $('nameIn').focus();
-  window.__fest = { cfg: cfg, pickPrize: pickPrize, rot: function () { return rot; }, at: indexAtPointer };
+  window.__fest = { cfg: cfg, pickPrize: pickPrize, resetRecent: function () { recent = []; }, rot: function () { return rot; }, at: indexAtPointer };
 })();
 </script>
 </body>
