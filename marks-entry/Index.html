@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Marks Entry</title>
+<style>
+  :root {
+    --bg: #eef3f1; --card: #ffffff; --ink: #1f2d2a; --muted: #64746f;
+    --line: #d9e3df; --accent: #1f7a6d; --accent-ink: #ffffff; --accent-soft: #e0f1ed;
+    --warn: #b3261e; --warn-soft: #fce8e6; --ab: #8a5a00; --ab-soft: #fff1d6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #11191a; --card: #1a2526; --ink: #e6efec; --muted: #93a7a1;
+      --line: #2c3b3c; --accent: #4fc2b0; --accent-ink: #08201c; --accent-soft: #1d3a36;
+      --warn: #ff9b92; --warn-soft: #3a1f1d; --ab: #f4c15a; --ab-soft: #3a2f14;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 16px 16px 120px; }
+  .top { border-top: 10px solid var(--accent); background: var(--card); border-radius: 12px;
+    padding: 18px 20px; margin-bottom: 14px; border-left: 1px solid var(--line);
+    border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .top h1 { margin: 0 0 4px; font-size: 1.35rem; }
+  .top p { margin: 0; color: var(--muted); font-size: .95rem; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 18px 20px; margin-bottom: 14px; }
+  h2 { margin: 0 0 12px; font-size: 1.1rem; }
+  label { display: block; font-weight: 600; margin: 14px 0 6px; }
+  label:first-child { margin-top: 0; }
+  select, input[type=text], input[type=password], input[type=number], input[inputmode] {
+    width: 100%; padding: 11px 12px; font: inherit; color: var(--ink); background: var(--card);
+    border: 1px solid var(--line); border-radius: 8px; }
+  select:focus, input:focus, button:focus-visible { outline: 3px solid var(--accent-soft); border-color: var(--accent); }
+  button { font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid var(--line);
+    background: var(--card); color: var(--ink); padding: 11px 16px; }
+  button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+  button.primary:disabled { opacity: .55; cursor: default; }
+  button.link { border: 0; background: none; color: var(--accent); padding: 4px 0; font-weight: 600; }
+  .row-btns { display: flex; gap: 10px; margin-top: 18px; align-items: center; }
+  .err { background: var(--warn-soft); color: var(--warn); border-radius: 8px; padding: 10px 12px; margin-top: 12px; }
+  .hide { display: none !important; }
+  .hello { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .hello strong { font-size: 1.05rem; }
+  .choice { display: grid; gap: 10px; }
+  .tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+  .tabs button { flex: 1; }
+  .tabs button.on { background: var(--accent-soft); border-color: var(--accent); color: var(--ink); font-weight: 600; }
+  .sub { color: var(--muted); font-size: .92rem; margin: 0 0 10px; }
+  .stu { display: grid; grid-template-columns: 1fr auto; gap: 8px 10px; align-items: center;
+    padding: 10px 0; border-top: 1px solid var(--line); }
+  .stu:first-of-type { border-top: 0; }
+  .stu .nm { min-width: 0; }
+  .stu .nm b { display: block; overflow-wrap: anywhere; }
+  .stu .nm span { color: var(--muted); font-size: .85rem; }
+  .ctl { display: flex; gap: 8px; align-items: center; }
+  .ctl input { width: 84px; text-align: center; font-size: 1.1rem; padding: 9px 6px; }
+  .ctl input.bad { border-color: var(--warn); background: var(--warn-soft); }
+  .abbtn { padding: 9px 11px; font-weight: 600; font-size: .9rem; }
+  .abbtn.on { background: var(--ab-soft); color: var(--ab); border-color: var(--ab); }
+  .att { grid-template-columns: 1fr; }
+  .att .ctl { flex-wrap: wrap; }
+  .att .ctl input.note { flex: 1; min-width: 160px; width: auto; text-align: left; font-size: 1rem; }
+  .chips { display: flex; gap: 6px; }
+  .chip { min-width: 44px; padding: 9px 0; text-align: center; font-weight: 600; }
+  .chip.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .bar { position: fixed; left: 0; right: 0; bottom: 0; background: var(--card); border-top: 1px solid var(--line);
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); }
+  .bar .in { max-width: 640px; margin: 0 auto; display: flex; gap: 12px; align-items: center; justify-content: space-between; }
+  .bar .count { color: var(--muted); font-size: .92rem; }
+  .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: 84px; background: var(--ink); color: var(--bg);
+    padding: 10px 16px; border-radius: 999px; font-weight: 600; box-shadow: 0 4px 16px rgba(0,0,0,.25); }
+  .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent;
+    border-radius: 50%; animation: sp .7s linear infinite; vertical-align: -2px; margin-right: 6px; }
+  @keyframes sp { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .spin { animation-duration: 2s; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <h1 id="school">Marks Entry</h1>
+    <p id="tagline">Teachers' portal &middot; enter marks, attendance and activity grades</p>
+  </div>
+
+  <!-- Sign in -->
+  <section id="vLogin" class="card">
+    <h2>Sign in</h2>
+    <label for="pin">Your PIN</label>
+    <input id="pin" type="password" inputmode="numeric" autocomplete="off" placeholder="Enter your PIN">
+    <div id="loginErr" class="err hide"></div>
+    <div class="row-btns"><button id="loginBtn" class="primary">Continue</button></div>
+  </section>
+
+  <!-- Home -->
+  <section id="vHome" class="hide">
+    <div class="card hello">
+      <div><strong id="who"></strong><div class="sub" id="whoSub" style="margin:0"></div></div>
+      <button class="link" id="signOut">Sign out</button>
+    </div>
+
+    <div class="card" id="marksCard">
+      <h2>Enter marks</h2>
+      <label for="selSubject">Subject</label>
+      <select id="selSubject"></select>
+      <label for="selClass">Class</label>
+      <select id="selClass"></select>
+      <label for="selExam">Exam</label>
+      <select id="selExam"></select>
+      <div class="row-btns"><button id="openMarks" class="primary">Open student list</button></div>
+    </div>
+
+    <div class="card" id="deskCard">
+      <h2>Class teacher desk</h2>
+      <label for="selDeskClass">Class</label>
+      <select id="selDeskClass"></select>
+      <div class="row-btns"><button id="openDesk" class="primary">Open</button></div>
+    </div>
+    <div id="homeErr" class="err hide"></div>
+  </section>
+
+  <!-- Marks list -->
+  <section id="vMarks" class="hide">
+    <div class="card">
+      <button class="link" data-back>&larr; Back</button>
+      <h2 id="marksTitle" style="margin-top:8px"></h2>
+      <p class="sub" id="marksSub"></p>
+      <div id="marksList"></div>
+    </div>
+    <div class="bar"><div class="in">
+      <span class="count" id="marksCount"></span>
+      <button id="saveMarks" class="primary">Save marks</button>
+    </div></div>
+  </section>
+
+  <!-- Class teacher desk -->
+  <section id="vDesk" class="hide">
+    <div class="card">
+      <button class="link" data-back>&larr; Back</button>
+      <h2 id="deskTitle" style="margin-top:8px"></h2>
+      <div class="tabs">
+        <button id="tabAtt" class="on">Attendance</button>
+        <button id="tabAct">Activities</button>
+      </div>
+      <div id="paneAtt">
+        <label for="workDays">Working days so far</label>
+        <input id="workDays" type="text" inputmode="numeric" placeholder="e.g. 120">
+        <p class="sub" style="margin-top:12px">Days present and an optional note for each child.</p>
+        <div id="attList"></div>
+      </div>
+      <div id="paneAct" class="hide">
+        <label for="selActivity">Activity</label>
+        <select id="selActivity"></select>
+        <p class="sub" style="margin-top:12px">Tap a grade. Tap it again to clear.</p>
+        <div id="actList"></div>
+      </div>
+    </div>
+    <div class="bar"><div class="in">
+      <span class="count" id="deskCount"></span>
+      <button id="saveDesk" class="primary">Save</button>
+    </div></div>
+  </section>
+</div>
+<div id="toast" class="toast hide" role="status"></div>
+
+<script>
+(function () {
+  var $ = function (s) { return document.querySelector(s); };
+  var state = { pin: '', profile: null, marks: null, desk: null, dirty: false, tab: 'att' };
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function call(fn) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    return new Promise(function (resolve, reject) {
+      var r = google.script.run
+        .withSuccessHandler(resolve)
+        .withFailureHandler(function (e) { reject(new Error((e && e.message) || String(e))); });
+      r[fn].apply(r, args);
+    });
+  }
+  function show(id) {
+    ['vLogin', 'vHome', 'vMarks', 'vDesk'].forEach(function (v) { $('#' + v).classList.toggle('hide', v !== id); });
+    window.scrollTo(0, 0);
+  }
+  function showErr(el, msg) { el.textContent = msg; el.classList.remove('hide'); }
+  function clearErr(el) { el.classList.add('hide'); }
+  var toastT;
+  function toast(msg) {
+    var t = $('#toast'); t.textContent = msg; t.classList.remove('hide');
+    clearTimeout(toastT); toastT = setTimeout(function () { t.classList.add('hide'); }, 2600);
+  }
+  function busy(btn, on, label) {
+    btn.disabled = on;
+    if (on) { btn.dataset.l = btn.textContent; btn.innerHTML = '<span class="spin"></span>' + (label || 'Please wait'); }
+    else if (btn.dataset.l) btn.textContent = btn.dataset.l;
+  }
+  function className(c) { return c >= 1 ? 'Class ' + c : 'Pre-primary'; }
+  function opts(arr, fmt) {
+    return arr.map(function (v) { return '<option value="' + esc(v) + '">' + esc(fmt ? fmt(v) : v) + '</option>'; }).join('');
+  }
+  function confirmLeave() {
+    return !state.dirty || confirm('You have unsaved changes. Leave without saving?');
+  }
+  window.addEventListener('beforeunload', function (e) { if (state.dirty) { e.preventDefault(); e.returnValue = ''; } });
+
+  /* ---------- sign in ---------- */
+  function login() {
+    var pin = $('#pin').value.trim();
+    var btn = $('#loginBtn');
+    clearErr($('#loginErr'));
+    busy(btn, true, 'Checking');
+    call('login', pin).then(function (p) {
+      state.pin = pin; state.profile = p;
+      if (p.school) { $('#school').textContent = p.school; }
+      $('#tagline').textContent = 'Marks Entry' + (p.year ? ' · ' + p.year : '');
+      $('#pin').value = '';
+      buildHome(); show('vHome');
+    }).catch(function (e) { showErr($('#loginErr'), e.message); })
+      .then(function () { busy(btn, false); });
+  }
+  $('#loginBtn').onclick = login;
+  $('#pin').addEventListener('keydown', function (e) { if (e.key === 'Enter') login(); });
+  $('#signOut').onclick = function () {
+    if (!confirmLeave()) return;
+    state = { pin: '', profile: null, marks: null, desk: null, dirty: false, tab: 'att' };
+    show('vLogin');
+  };
+
+  /* ---------- home ---------- */
+  function buildHome() {
+    var p = state.profile;
+    $('#who').textContent = 'Welcome, ' + p.name;
+    var bits = [];
+    if (p.subjects.length) bits.push(p.subjects.map(function (s) { return s.subject; }).join(', '));
+    if (p.classTeacherOf.length) bits.push('Class teacher of ' + p.classTeacherOf.join(', '));
+    $('#whoSub').textContent = bits.join(' · ');
+
+    var hasMarks = p.subjects.length > 0;
+    $('#marksCard').classList.toggle('hide', !hasMarks);
+    if (hasMarks) {
+      $('#selSubject').innerHTML = opts(p.subjects.map(function (s) { return s.subject; }));
+      $('#selExam').innerHTML = opts(p.exams);
+      fillClasses();
+    }
+    var hasDesk = p.classTeacherOf.length > 0;
+    $('#deskCard').classList.toggle('hide', !hasDesk);
+    if (hasDesk) $('#selDeskClass').innerHTML = opts(p.classTeacherOf, className);
+  }
+  function fillClasses() {
+    var s = state.profile.subjects.filter(function (x) { return x.subject === $('#selSubject').value; })[0];
+    $('#selClass').innerHTML = opts(s ? s.classes : [], className);
+  }
+  $('#selSubject').onchange = fillClasses;
+
+  document.querySelectorAll('[data-back]').forEach(function (b) {
+    b.onclick = function () { if (confirmLeave()) { state.dirty = false; show('vHome'); } };
+  });
+
+  /* ---------- marks ---------- */
+  $('#openMarks').onclick = function () {
+    var subject = $('#selSubject').value, cls = Number($('#selClass').value), exam = $('#selExam').value;
+    if (!subject || !cls) return showErr($('#homeErr'), 'Please choose a subject and class.');
+    clearErr($('#homeErr'));
+    var btn = $('#openMarks'); busy(btn, true, 'Loading');
+    call('getRoster', state.pin, cls, subject, exam).then(function (r) {
+      state.marks = { cls: cls, subject: subject, exam: exam, max: r.max, rows: r.students };
+      renderMarks(); show('vMarks');
+    }).catch(function (e) { showErr($('#homeErr'), e.message); })
+      .then(function () { busy(btn, false); });
+  };
+
+  function renderMarks() {
+    var m = state.marks;
+    $('#marksTitle').textContent = m.subject + ' · ' + m.exam;
+    $('#marksSub').textContent = className(m.cls) + ' · out of ' + m.max + ' · type AB if the child was absent';
+    $('#marksList').innerHTML = m.rows.map(function (s, i) {
+      var ab = String(s.value).toUpperCase() === 'AB';
+      return '<div class="stu" data-i="' + i + '">' +
+        '<div class="nm"><b>' + esc(s.name) + '</b><span>Roll ' + esc(s.roll) + '</span></div>' +
+        '<div class="ctl">' +
+        '<input type="text" inputmode="decimal" autocomplete="off" aria-label="Marks for ' + esc(s.name) + '" value="' + esc(s.value) + '">' +
+        '<button class="abbtn' + (ab ? ' on' : '') + '" type="button" aria-pressed="' + ab + '">AB</button>' +
+        '</div></div>';
+    }).join('') || '<p class="sub">No students found for this class.</p>';
+    state.dirty = false; updateMarksCount();
+  }
+  function markIsValid(v, max) {
+    v = String(v).trim();
+    if (v === '' || /^ab$/i.test(v)) return true;
+    var n = Number(v);
+    return isFinite(n) && n >= 0 && n <= max;
+  }
+  function updateMarksCount() {
+    var m = state.marks, filled = 0, bad = 0;
+    m.rows.forEach(function (s) {
+      if (String(s.value).trim() !== '') filled++;
+      if (!markIsValid(s.value, m.max)) bad++;
+    });
+    $('#marksCount').textContent = filled + ' of ' + m.rows.length + ' entered' + (bad ? ' · ' + bad + ' to fix' : '');
+    $('#saveMarks').disabled = bad > 0;
+  }
+  $('#marksList').addEventListener('input', function (e) {
+    if (e.target.tagName !== 'INPUT') return;
+    var row = e.target.closest('.stu'), s = state.marks.rows[row.dataset.i];
+    s.value = e.target.value.trim();
+    var isAb = /^ab$/i.test(s.value);
+    row.querySelector('.abbtn').classList.toggle('on', isAb);
+    e.target.classList.toggle('bad', !markIsValid(s.value, state.marks.max));
+    state.dirty = true; updateMarksCount();
+  });
+  $('#marksList').addEventListener('click', function (e) {
+    var b = e.target.closest('.abbtn'); if (!b) return;
+    var row = b.closest('.stu'), s = state.marks.rows[row.dataset.i], inp = row.querySelector('input');
+    s.value = /^ab$/i.test(s.value) ? '' : 'AB';
+    inp.value = s.value; inp.classList.remove('bad');
+    b.classList.toggle('on', s.value === 'AB'); b.setAttribute('aria-pressed', s.value === 'AB');
+    state.dirty = true; updateMarksCount();
+  });
+  $('#marksList').addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' || e.target.tagName !== 'INPUT') return;
+    e.preventDefault();
+    var all = Array.prototype.slice.call($('#marksList').querySelectorAll('input'));
+    var nxt = all[all.indexOf(e.target) + 1];
+    if (nxt) { nxt.focus(); nxt.select(); }
+  });
+  $('#saveMarks').onclick = function () {
+    var m = state.marks, btn = $('#saveMarks');
+    busy(btn, true, 'Saving');
+    call('saveMarks', state.pin, m.cls, m.subject, m.exam,
+      m.rows.map(function (s) { return { roll: s.roll, value: s.value }; }))
+      .then(function (r) {
+        state.dirty = false;
+        toast(r.changed ? 'Saved ✓ ' + r.changed + ' updated' : 'Nothing new to save');
+      }).catch(function (e) { alert(e.message); })
+      .then(function () { busy(btn, false); updateMarksCount(); });
+  };
+
+  /* ---------- class teacher desk ---------- */
+  $('#openDesk').onclick = function () {
+    var cls = Number($('#selDeskClass').value), btn = $('#openDesk');
+    clearErr($('#homeErr')); busy(btn, true, 'Loading');
+    call('getClassDesk', state.pin, cls).then(function (d) {
+      state.desk = { cls: cls, workingDays: d.workingDays, rows: d.students, activity: state.profile.activities[0] || '' };
+      $('#selActivity').innerHTML = opts(state.profile.activities);
+      $('#workDays').value = d.workingDays;
+      $('#deskTitle').textContent = className(cls) + ' · ' + d.students.length + ' children';
+      setTab('att'); renderAtt(); renderAct(); show('vDesk');
+    }).catch(function (e) { showErr($('#homeErr'), e.message); })
+      .then(function () { busy(btn, false); });
+  };
+  function setTab(t) {
+    state.tab = t;
+    $('#tabAtt').classList.toggle('on', t === 'att'); $('#tabAct').classList.toggle('on', t === 'act');
+    $('#paneAtt').classList.toggle('hide', t !== 'att'); $('#paneAct').classList.toggle('hide', t !== 'act');
+    $('#saveDesk').textContent = t === 'att' ? 'Save attendance' : 'Save grades';
+    updateDeskCount();
+  }
+  $('#tabAtt').onclick = function () { setTab('att'); };
+  $('#tabAct').onclick = function () { setTab('act'); };
+
+  function renderAtt() {
+    $('#attList').innerHTML = state.desk.rows.map(function (s, i) {
+      return '<div class="stu att" data-i="' + i + '">' +
+        '<div class="nm"><b>' + esc(s.name) + '</b><span>Roll ' + esc(s.roll) + '</span></div>' +
+        '<div class="ctl"><input type="text" inputmode="numeric" class="pres" placeholder="Present" aria-label="Days present for ' + esc(s.name) + '" value="' + esc(s.present) + '">' +
+        '<input type="text" class="note" placeholder="Note (optional)" aria-label="Note for ' + esc(s.name) + '" value="' + esc(s.note) + '"></div></div>';
+    }).join('');
+  }
+  $('#attList').addEventListener('input', function (e) {
+    var row = e.target.closest('.stu'); if (!row) return;
+    var s = state.desk.rows[row.dataset.i];
+    if (e.target.classList.contains('pres')) s.present = e.target.value.trim(); else s.note = e.target.value;
+    state.dirty = true; updateDeskCount();
+  });
+  $('#workDays').addEventListener('input', function () { state.dirty = true; updateDeskCount(); });
+  function attBad() {
+    var wd = $('#workDays').value.trim();
+    var n = 0;
+    state.desk.rows.forEach(function (s) {
+      var p = String(s.present).trim(); if (p === '') return;
+      if (!/^\d+$/.test(p) || wd === '' || Number(p) > Number(wd)) n++;
+    });
+    document.querySelectorAll('#attList .pres').forEach(function (inp, i) {
+      var p = String(state.desk.rows[i].present).trim();
+      inp.classList.toggle('bad', p !== '' && (!/^\d+$/.test(p) || wd === '' || Number(p) > Number(wd)));
+    });
+    return n + (wd !== '' && !/^\d+$/.test(wd) ? 1 : 0);
+  }
+  function updateDeskCount() {
+    if (!state.desk) return;
+    var rows = state.desk.rows;
+    if (state.tab === 'att') {
+      var bad = attBad(), done = rows.filter(function (s) { return String(s.present).trim() !== ''; }).length;
+      $('#deskCount').textContent = done + ' of ' + rows.length + ' entered' + (bad ? ' · ' + bad + ' to fix' : '');
+      $('#saveDesk').disabled = bad > 0;
+    } else {
+      var a = $('#selActivity').value;
+      var g = rows.filter(function (s) { return s.grades[a]; }).length;
+      $('#deskCount').textContent = g + ' of ' + rows.length + ' graded';
+      $('#saveDesk').disabled = false;
+    }
+  }
+  function renderAct() {
+    var a = $('#selActivity').value, grades = state.profile.activityGrades;
+    $('#actList').innerHTML = state.desk.rows.map(function (s, i) {
+      return '<div class="stu" data-i="' + i + '">' +
+        '<div class="nm"><b>' + esc(s.name) + '</b><span>Roll ' + esc(s.roll) + '</span></div>' +
+        '<div class="chips">' + grades.map(function (g) {
+          var on = s.grades[a] === g;
+          return '<button type="button" class="chip' + (on ? ' on' : '') + '" data-g="' + esc(g) + '" aria-pressed="' + on + '">' + esc(g) + '</button>';
+        }).join('') + '</div></div>';
+    }).join('');
+    updateDeskCount();
+  }
+  $('#selActivity').onchange = function () { renderAct(); };
+  $('#actList').addEventListener('click', function (e) {
+    var b = e.target.closest('.chip'); if (!b) return;
+    var row = b.closest('.stu'), s = state.desk.rows[row.dataset.i], a = $('#selActivity').value;
+    s.grades[a] = s.grades[a] === b.dataset.g ? '' : b.dataset.g;
+    row.querySelectorAll('.chip').forEach(function (c) {
+      var on = s.grades[a] === c.dataset.g; c.classList.toggle('on', on); c.setAttribute('aria-pressed', on);
+    });
+    state.dirty = true; updateDeskCount();
+  });
+  $('#saveDesk').onclick = function () {
+    var d = state.desk, btn = $('#saveDesk'), p;
+    busy(btn, true, 'Saving');
+    if (state.tab === 'att') {
+      p = call('saveAttendance', state.pin, d.cls, $('#workDays').value.trim(),
+        d.rows.map(function (s) { return { roll: s.roll, present: s.present, note: s.note }; }));
+    } else {
+      var a = $('#selActivity').value;
+      p = call('saveActivity', state.pin, d.cls, a,
+        d.rows.map(function (s) { return { roll: s.roll, grade: s.grades[a] || '' }; }));
+    }
+    p.then(function (r) {
+      state.dirty = false;
+      toast(r.changed ? 'Saved ✓ ' + r.changed + ' updated' : 'Nothing new to save');
+    }).catch(function (e) { alert(e.message); })
+      .then(function () { busy(btn, false); updateDeskCount(); });
+  };
+})();
+</script>
+</body>
+</html>
